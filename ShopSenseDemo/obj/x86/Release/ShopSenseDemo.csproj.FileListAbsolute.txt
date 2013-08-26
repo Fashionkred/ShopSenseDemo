@@ -1,0 +1,5 @@
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Release\ShopSenseDemo.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Release\ShopSenseDemo.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Release\ResolveAssemblyReference.cache
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Release\ShopSenseDemo.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Release\ShopSenseDemo.pdb
