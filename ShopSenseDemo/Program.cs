@@ -35,7 +35,7 @@ namespace ShopSenseDemo
 
         public static string SSProductQueryUrl = "http://api.shopstyle.com/action/apiSearch?pid=uid5264-8690292-48&format=json&cat={0}&count=100&fl={1}&fl={2}";
 
-        public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Ns711101";
+        public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
 
         public static string ExecuteGetCommand(string url, string userName, string password)
         {
