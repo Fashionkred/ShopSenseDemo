@@ -16,7 +16,7 @@ namespace WeeklyNewsLetter
 
         static void Main(string[] args)
         {
-            string db = @"Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Ns711101";
+            string db = @"Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
             string query = "EXEC [stp_SS_NewsLetter] @contestId=" + contestId;
             SqlConnection myConnection = new SqlConnection(db);
             Look look = new Look();
