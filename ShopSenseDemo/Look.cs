@@ -26,26 +26,53 @@ namespace ShopSenseDemo
         public UserProfile creator { get; set; }
 
         [DataMember]
-        public int contestId { get; set; }
+        public List<string> tags { get; set; }
 
+        [DataMember]
+        public string title { get; set; }
+
+        public long originalLookId { get; set; }
+
+        //TODO: Deprecate contest id and name
+        public int contestId { get; set; }
+        
         public string contestName { get; set; }
 
         public int Loved { get; set; }
+
+        public string TagsFormatted()
+        {
+            string tagsFormatted = string.Empty;
+            if (tags.Count > 0)
+            {
+                tagsFormatted = tags[0];
+                for (int i = 1; i < tags.Count; i++)
+                    tagsFormatted += ", " + tags[i];
+            }
+            return tagsFormatted;
+        }
 
         public static Look GetLookFromSqlReader(SqlDataReader dr)
         {
             Look look = new Look();
             look.products = new List<Product>();
+            look.tags = new List<string>();
 
             while (dr.Read())
             {
                 look.id = int.Parse(dr["Id"].ToString());
                 look.upVote = int.Parse(dr["UpVote"].ToString());
                 look.downVote = int.Parse(dr["DownVote"].ToString());
+                look.title = dr["Title"].ToString();
 
-                if(dr["ContestId"]!= null)
+                if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {
-                    look.contestId = int.Parse(dr["ContestId"].ToString());
+                    look.originalLookId = int.Parse(dr["OriginalLook"].ToString());
+                }
+
+                if (!string.IsNullOrEmpty(dr["contestId"].ToString()))
+                {
+                    look.contestId = int.Parse(dr["contestId"].ToString());
                 }
             }
 
@@ -54,11 +81,21 @@ namespace ShopSenseDemo
             {
                 dr.NextResult();
 
+                // read the creator
                 while (dr.Read())
                 {
                     look.creator = UserProfile.GetUserFromSqlReader(dr);
                 }
-                
+
+                // read the tags
+                dr.NextResult();
+                while (dr.Read())
+                {
+                    string tag = dr["Name"].ToString();
+                    look.tags.Add(tag);
+                }
+                   
+                //read the products
                 if (dr.NextResult())
                 {
                     do
