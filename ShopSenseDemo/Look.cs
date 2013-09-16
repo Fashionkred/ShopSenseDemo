@@ -26,7 +26,7 @@ namespace ShopSenseDemo
         public UserProfile creator { get; set; }
 
         [DataMember]
-        public List<string> tags { get; set; }
+        public List<Tag> tags { get; set; }
 
         [DataMember]
         public string title { get; set; }
@@ -45,9 +45,9 @@ namespace ShopSenseDemo
             string tagsFormatted = string.Empty;
             if (tags.Count > 0)
             {
-                tagsFormatted = tags[0];
+                tagsFormatted = tags[0].name;
                 for (int i = 1; i < tags.Count; i++)
-                    tagsFormatted += ", " + tags[i];
+                    tagsFormatted += ", " + tags[i].name;
             }
             return tagsFormatted;
         }
@@ -56,7 +56,7 @@ namespace ShopSenseDemo
         {
             Look look = new Look();
             look.products = new List<Product>();
-            look.tags = new List<string>();
+            look.tags = new List<Tag>();
 
             while (dr.Read())
             {
@@ -91,24 +91,37 @@ namespace ShopSenseDemo
                 dr.NextResult();
                 while (dr.Read())
                 {
-                    string tag = dr["Name"].ToString();
+                    long tagId = long.Parse(dr["id"].ToString());
+                    string tagName = dr["Name"].ToString();
+                    Tag tag = new Tag(tagId, tagName);
                     look.tags.Add(tag);
                 }
                    
                 //read the products
                 if (dr.NextResult())
-                {
-                    do
+                {  
+                    while (dr.Read())
                     {
-                        while (dr.Read())
-                        {
-                            look.products.Add(Product.GetProductFromSqlDataReader(dr));
-                        }
-                    } while (dr.NextResult());
+                        look.products.Add(Product.GetProductFromSqlDataReader(dr));
+                    }
                 }
             }
 
             return look;
+        }
+
+        //Get looks for homepage
+        public static List<Look> GetLooksFromSqlReader(SqlDataReader dr)
+        {
+            List<Look> looks = new List<Look>();
+
+            do
+            {
+                Look look = Look.GetLookFromSqlReader(dr);
+                looks.Add(look);
+            } while (dr.NextResult());
+
+            return looks;
         }
         //Get a random product combo from the specified category and retailer
         
