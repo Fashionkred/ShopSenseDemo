@@ -181,6 +181,8 @@ namespace ShopSenseDemo
             p.id = long.Parse(dr["id"].ToString());
             p.name = dr["Name"].ToString();
             p.images = new List<Image>();
+            p.categories = new List<string>();
+            p.colors = new List<Color>();
             Image img = new Image();
             img.url = dr["ImageUrl"].ToString();
             p.images.Add(img);
@@ -218,7 +220,33 @@ namespace ShopSenseDemo
                 p.images[0] = colorImg;
             }
 
+            if (ColumnExists(dr, "CategoryId") && !string.IsNullOrEmpty(dr["CategoryId"].ToString()))
+            {
+                p.categories.Add(dr["CategoryId"].ToString());
+            }
+
+            if (ColumnExists(dr, "ColorId") && !string.IsNullOrEmpty(dr["ColorId"].ToString()))
+            {
+                Color color = new Color();
+                color.canonical = new List<string>();
+                color.canonical.Add(dr["ColorId"].ToString());
+                p.colors.Add(color);
+            }
+
             return p;
+        }
+        public string GetCategory()
+        {
+            if (categories.Count > 0)
+                return categories[0];
+            else return null;
+        }
+
+        public string GetColor()
+        {
+            if (colors.Count > 0)
+                return colors[0].canonical[0];
+            else return null;
         }
 
         public string GetImageUrl()

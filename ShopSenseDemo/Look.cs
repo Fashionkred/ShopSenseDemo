@@ -31,6 +31,12 @@ namespace ShopSenseDemo
         [DataMember]
         public string title { get; set; }
 
+        [DataMember]
+        public int viewCount { get; set; }
+
+        [DataMember]
+        public int restyleCount { get; set; }
+
         public long originalLookId { get; set; }
 
         //TODO: Deprecate contest id and name
@@ -64,6 +70,8 @@ namespace ShopSenseDemo
                 look.upVote = int.Parse(dr["UpVote"].ToString());
                 look.downVote = int.Parse(dr["DownVote"].ToString());
                 look.title = dr["Title"].ToString();
+                look.restyleCount = int.Parse(dr["ReStyleCount"].ToString());
+                look.viewCount = int.Parse(dr["ViewCount"].ToString());
 
                 if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {
