@@ -158,6 +158,7 @@ namespace ShopSenseDemo
         public int loves { get; set; }
 
         public string colorString { get; set; }
+        public bool isCover { get; set; }
         public string sizeString { get; set; }
         public string AffiliateUrl {get; set;}
 
@@ -223,6 +224,12 @@ namespace ShopSenseDemo
             if (ColumnExists(dr, "CategoryId") && !string.IsNullOrEmpty(dr["CategoryId"].ToString()))
             {
                 p.categories.Add(dr["CategoryId"].ToString());
+            }
+
+            if (ColumnExists(dr, "IsCover") && !string.IsNullOrEmpty(dr["IsCover"].ToString()))
+            {
+                string isCover = dr["IsCover"].ToString();
+                p.isCover = isCover == "True" ? true : false;
             }
 
             if (ColumnExists(dr, "ColorId") && !string.IsNullOrEmpty(dr["ColorId"].ToString()))
