@@ -15,7 +15,9 @@ namespace ShopSenseDemo
     {
         None = 0x00,
         PrivateSharing = 0x01,
-        UnSubsrcibe = 0x02
+        UnSubsrcibe = 0x02,
+        Stylist = 0x04,
+        FeaturedUser = 0x08
     }
 
     public class UserProfile
@@ -45,6 +47,12 @@ namespace ShopSenseDemo
         public UserFlags userFlags { set; get; }
 
         public string Referral { set; get; }
+
+        public string password { set; get; }
+
+        public string ipAddress { set; get; }
+
+        public string userAgent { set; get; }
 
         public virtual bool IsPrivate
         {
@@ -177,7 +185,8 @@ namespace ShopSenseDemo
             string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender + 
                                                 ", @email=N'" + user.email + "', @location=N'" + user.location.Replace("'", "\"") +
                                   "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'"+
-                                  ",@flags=" + (int)user.userFlags+",@token='"+user.accessToken +"'" +",@referral=N'" + user.Referral + "'";
+                                  ",@flags=" + (int)user.userFlags+",@token='"+user.accessToken +"'" +",@referral=N'" + user.Referral + "'" +
+                                  ", @password=N'" + user.password + "', @ipAddress=N'" + user.ipAddress + "', @userAgent=N'" + user.userAgent + "'" ;
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -440,6 +449,35 @@ namespace ShopSenseDemo
                 myConnection.Close();
             }
             return isFollower;
+        }
+
+        //update cookie if this function is successful - so that users doesn't have to log in again for 15 days
+        public static UserProfile LogInUser(string email, string hash32Password, string db)
+        {
+            UserProfile user = null;
+            string query = "EXEC [stp_SS_Login] @email = N'" + email + "', "
+                                            + " @password = N'" + hash32Password + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        user = UserProfile.GetUserFromSqlReader(dr);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return user;
         }
     }
 

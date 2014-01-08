@@ -67,6 +67,12 @@ namespace ShopSenseDemo
 
         [DataMember]
         public List<Image> images {set; get;}
+
+        [DataMember]
+        public string name { get; set; }
+
+        [DataMember]
+        public string swatchUrl { get; set; }
     }
 
     [DataContract]
@@ -74,6 +80,25 @@ namespace ShopSenseDemo
     {
         [DataMember]
         public string canonical { get; set; }
+    }
+
+    [DataContract]
+    public class ProductColorDetails
+    {
+        [DataMember]
+        public string colorId {set; get;}
+
+        [DataMember]
+        public string imageUrl {set; get;}
+
+        [DataMember]
+        public string colorName {set; get;}
+
+        [DataMember]
+        public string swatchUrl {set; get;}
+
+        [DataMember]
+        public bool isDefaultColor { set; get; }
     }
 
     [DataContract]
@@ -157,10 +182,12 @@ namespace ShopSenseDemo
         [DataMember]
         public int loves { get; set; }
 
-        public string colorString { get; set; }
+        public string colorId { get; set; }
+
         public bool isCover { get; set; }
         public string sizeString { get; set; }
         public string AffiliateUrl {get; set;}
+        public string swatchUrl { get; set; }
 
         public static bool ColumnExists(IDataReader reader, string columnName)
         {
@@ -192,9 +219,8 @@ namespace ShopSenseDemo
             p.salePrice = (Decimal)dr["SalePrice"];
             p.description = dr["Description"].ToString();
             p.loves = int.Parse(dr["Loves"].ToString());
-
-            //p.colorString =  dr["Color"].ToString().TrimEnd(',');
-            
+            p.brandId = int.Parse(dr["BrandId"].ToString());
+            p.retailerId = int.Parse(dr["RetailerId"].ToString());
             p.sizeString =  dr["Size"].ToString().TrimEnd(',');
             
 
@@ -232,6 +258,7 @@ namespace ShopSenseDemo
                 p.isCover = isCover == "True" ? true : false;
             }
 
+            //IF color id is present - then take that otherwise choose default color 
             if (ColumnExists(dr, "ColorId") && !string.IsNullOrEmpty(dr["ColorId"].ToString()))
             {
                 Color color = new Color();
@@ -239,9 +266,22 @@ namespace ShopSenseDemo
                 color.canonical.Add(dr["ColorId"].ToString());
                 p.colors.Add(color);
             }
+            else if (ColumnExists(dr, "DefaultColorId") && !string.IsNullOrEmpty(dr["DefaultColorId"].ToString()))
+            {
+                Color color = new Color();
+                color.canonical = new List<string>();
+                color.canonical.Add(dr["DefaultColorId"].ToString());
+                p.colors.Add(color);
+            }
+
+            if (ColumnExists(dr, "SwatchUrl") && !string.IsNullOrEmpty(dr["SwatchUrl"].ToString()))
+            {
+                p.swatchUrl = dr["SwatchUrl"].ToString();
+            }
 
             return p;
         }
+
         public string GetCategory()
         {
             if (categories.Count > 0)
@@ -299,6 +339,7 @@ namespace ShopSenseDemo
                 }
             }
         }
+
         public string GetThumbnailUrl()
         {
             string thumbnail = this.images[0].url.Replace("xim","pim");
@@ -335,6 +376,91 @@ namespace ShopSenseDemo
             return p;
 
         }
+
+        public static Dictionary<string, List<Product>> GetSimilarProducts(string categoryId,string colorId, long brandId,long retailerId , string db)
+        {
+            Dictionary<string, List<Product>> similarProducts = new Dictionary<string, List<Product>>();
+            string query = "EXEC [stp_SS_GetSimilarProducts] @categoryId=N'" + categoryId + "', @colorId=N'" + colorId + "', @brandId=" + brandId +",@retailerId=" + retailerId;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    List<Product> exactSimilarproducts = new List<Product>();
+                        
+                    while (dr.Read())
+                    {
+                        exactSimilarproducts.Add(GetProductFromSqlDataReader(dr));
+                    }
+                    similarProducts.Add("exact", exactSimilarproducts);
+ 
+                    //Same Color
+                    dr.NextResult();
+                    List<Product> sameColorProducts = new List<Product>();
+
+                    while (dr.Read())
+                    {
+                        sameColorProducts.Add(GetProductFromSqlDataReader(dr));
+                    }
+                    similarProducts.Add("color", sameColorProducts);
+
+                    //Same Brand
+                    dr.NextResult();
+                    List<Product> sameBrandProducts = new List<Product>();
+
+                    while (dr.Read())
+                    {
+                        sameBrandProducts.Add(GetProductFromSqlDataReader(dr));
+                    }
+                    similarProducts.Add("brand", sameBrandProducts);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return similarProducts;
+        }
+
+        public Dictionary<string, ProductColorDetails> GetProductColorOptions(long id, string db)
+        {
+            Dictionary<string, ProductColorDetails> colorOptions = new Dictionary<string, ProductColorDetails>();
+
+            string query = "EXEC [stp_SS_GetProductColorOptions] @id=" + id;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        ProductColorDetails details = new ProductColorDetails();
+                        details.colorId = dr["ColorId"].ToString();
+                        details.imageUrl = dr["ImageUrl"].ToString();
+                        details.swatchUrl = dr["SwatchUrl"].ToString();
+                        details.colorName = dr["ColorName"].ToString();
+                        string defaultColorId = dr["DefaultColorId"].ToString();
+                        details.isDefaultColor = (details.colorId == defaultColorId) ? true : false;
+                        colorOptions.Add(details.colorId, details);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return colorOptions;
+        }
     }
 
     [DataContract]
@@ -365,6 +491,7 @@ namespace ShopSenseDemo
                     categoryList += "</CategoryList>";
 
                     string colorList = "<ColorList>";
+                    string defaultColorId = null;
                     foreach (Color color in p.colors)
                     {
                         //store the image url for hte right color
@@ -372,8 +499,13 @@ namespace ShopSenseDemo
                         {
                             string imageUrl = p.images[3].url.Replace("'", "\"");
                             if (color.images != null)
+                            {
                                 imageUrl = color.images[3].url.Replace("'", "\"");
-                            colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" />";
+                                if(p.GetImageUrl() == p.images[3].url)
+                                    defaultColorId = color.canonical[0];
+                            }
+                            colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" cname=\"" + color.name +
+                               "\" surl=\"" + color.swatchUrl + "\" />";
                         }
                     }
                     colorList += "</ColorList>";
@@ -391,7 +523,7 @@ namespace ShopSenseDemo
                                                                 "', @locale='" + p.locale.Replace("'", "\"") + "', @description=N'" + p.description.Replace("'", "\"") +
                                                                 "', @brandId=" + p.brandId + ", @imageUrl=N'" + p.images[3].url.Replace("'", "\"") + "', @color='" + colorList +
                                                                 "', @size=N'" + sizeList.Replace("'", "\"") + "', @seeMoreUrl=N'"+ p.seeMoreUrl.Replace("'", "\"") +
-                                                                "', @extractDate='" + p.extractDate + "', @categoryList='" + categoryList + "',@affiliateUrl=N'" + p.AffiliateUrl + "'";
+                   "', @extractDate='" + p.extractDate + "', @categoryList='" + categoryList + "',@affiliateUrl=N'" + p.AffiliateUrl + "', @defaultColorId=N'" + defaultColorId + "'" ;
 
                     try
                     {

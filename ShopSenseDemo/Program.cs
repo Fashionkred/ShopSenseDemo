@@ -26,16 +26,18 @@ namespace ShopSenseDemo
     //    public string tweet;
     //}
 
-    class Program
+    public class Program
     {
 
-        public static string SSRetailerUrl = "http://api.shopstyle.com/action/apiGetRetailers?pid=uid5264-8690292-48&format=json";
-        public static string SSBrandUrl = "http://api.shopstyle.com/action/apiGetBrands?pid=uid5264-8690292-48&format=json";
-        public static string SSCategoryUrl = "http://api.shopstyle.com/action/apiGetCategoryHistogram?pid=uid5264-8690292-48&format=json";
+        public static string SSRetailerUrl = "http://api.shopstyle.com/api/v2/retailers?pid=uid5264-8690292-48";
+        public static string SSBrandUrl = "http://api.shopstyle.com/api/v2/brands?pid=uid5264-8690292-48";
+        public static string SSCategoryUrl = "http://api.shopstyle.com/api/v2/categories?pid=uid5264-8690292-48";
+        public static string SSProductv2Url = "http://api.shopstyle.com/api/v2/products?pid=uid5264-8690292-48&cat={0}&limit=1&fl=r1";
 
-        public static string SSProductQueryUrl = "http://api.shopstyle.com/action/apiSearch?pid=uid5264-8690292-48&format=json&cat={0}&count=100&fl={1}&fl={2}";
+        public static string SSProductQueryUrl = "http://api.shopstyle.com/action/apiSearch?pid=uid5264-8690292-48&format=json&cat={0}&count=1";
 
-        public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
+        //public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
+        public static string connectionString = "server=localhost;Database=Fashionkred;Integrated Security=True;";
 
         public static string ExecuteGetCommand(string url, string userName, string password)
         {
@@ -157,7 +159,7 @@ namespace ShopSenseDemo
         public static void UpdateAffiliateLinks(int retailerId)
         {
             //Get product id, url
-            string query = "SELECT id,Url from [FaceBook].[nirveek_de].[SS_Product] where retailerid=" + retailerId;
+            string query = "SELECT id,Url from [nirveek_de].[SS_Product] where AffiliateUrl is null and retailerid=" + retailerId;
 
             SqlConnection myConnection = new SqlConnection(connectionString);
             List<Product> products = new List<Product>();
@@ -196,7 +198,7 @@ namespace ShopSenseDemo
                     //Thread.Sleep(500);
                     
                     p.AffiliateUrl = AffiliateLink.GetAffiliateLink(p.url);
-                    query = "update [FaceBook].[nirveek_de].[SS_Product] set AffiliateUrl = N'" + p.AffiliateUrl + "' where Id =" + p.id;
+                    query = "update [nirveek_de].[SS_Product] set AffiliateUrl = N'" + p.AffiliateUrl + "' where Id =" + p.id;
                     Console.WriteLine(i);
                     using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
                     {
@@ -226,64 +228,84 @@ namespace ShopSenseDemo
                 CanonicalColors.Gold, CanonicalColors.Gray, CanonicalColors.Green, CanonicalColors.Orange, CanonicalColors.Pink, CanonicalColors.Purple,
                 CanonicalColors.Red, CanonicalColors.Silver, CanonicalColors.White, CanonicalColors.Yellow
             };
-            foreach (CanonicalColors c in colors)
+
+            List<string> Retailers = new List<string> { "r1", "r2", "r6", "r7", "r8", "r9", "r374" };
+
+            //foreach (string r in Retailers)
+            //{
+            //    Console.WriteLine("Retailer: " + r);
+
+            //    GetProducts("flats", r, r);
+            //}
+
+            CategoryTree catTree = new CategoryTree();
+            catTree.LoadCategoryTree(connectionString);
+
+            Console.WriteLine(catTree.flattenCatTree(catTree.handbagCats, "HandBag"));
+            Console.WriteLine(catTree.flattenCatTree(catTree.clothingCats, "Clothing"));
+            Console.WriteLine(catTree.flattenCatTree(catTree.beautyCats, "Beauty"));
+            Console.WriteLine(catTree.flattenCatTree(catTree.shoeCats, "Shoe"));
+
+            /*foreach (CanonicalColors c in colors)
             {
                 //Get the color code
                 Console.WriteLine("Color: " + c);
                 string colorfilter = "c" + c.GetHashCode();
                 //Get Evening dresses from Nordstrom's
-                //GetProducts("evening-dresses", "r1" , colorfilter);
-                ////GetProducts("evening-shoes", "r1", colorfilter);
-                ////GetProducts("evening-handbags", "r1", colorfilter);
-                //Console.WriteLine("Combo: Day Outfit");
-                //GetProducts("day-dresses", "r1", colorfilter);
-                //GetProducts("shoulder-bags", "r1", colorfilter);
-                //GetProducts("flats", "r1", colorfilter);
+                GetProducts("evening-dresses", "r1", colorfilter);
+                GetProducts("evening-shoes", "r1", colorfilter);
+                GetProducts("evening-handbags", "r1", colorfilter);
 
-                //Console.WriteLine("Combo: Bridal Outfit");
-                //GetProducts("bridal-dresses", "r1", colorfilter);
-                //GetProducts("bridal-shoes", "r1", colorfilter);
-                //GetProducts("clutches", "r1", colorfilter);
+                Console.WriteLine("Combo: Day Outfit");
+                GetProducts("day-dresses", "r1", colorfilter);
+                GetProducts("shoulder-bags", "r1", colorfilter);
+                GetProducts("flats", "r1", colorfilter);
 
-                //Console.WriteLine("Combo: Casual Outfit");
-                //GetProducts("skinny-jeans", "r1", colorfilter);
-                //GetProducts("tank-tops", "r1", colorfilter);
+                Console.WriteLine("Combo: Bridal Outfit");
+                GetProducts("bridal-dresses", "r1", colorfilter);
+                GetProducts("bridal-shoes", "r1", colorfilter);
+                GetProducts("clutches", "r1", colorfilter);
+
+                Console.WriteLine("Combo: Casual Outfit");
+                GetProducts("skinny-jeans", "r1", colorfilter);
+                GetProducts("tank-tops", "r1", colorfilter);
 
                 //Pull all shoes
-                //GetProducts("boots", "r1", colorfilter);
-                //GetProducts("mules-and-clogs", "r1", colorfilter);
-                //GetProducts("platforms", "r1", colorfilter);
-                //GetProducts("pumps", "r1", colorfilter);
-                //GetProducts("sandals", "r1", colorfilter);
-                //GetProducts("wedges", "r1", colorfilter);
-                //GetProducts("shoes-athletic", "r1", colorfilter);
+                GetProducts("boots", "r1", colorfilter);
+                GetProducts("mules-and-clogs", "r1", colorfilter);
+                GetProducts("platforms", "r1", colorfilter);
+                GetProducts("pumps", "r1", colorfilter);
+                GetProducts("sandals", "r1", colorfilter);
+                GetProducts("wedges", "r1", colorfilter);
+                GetProducts("shoes-athletic", "r1", colorfilter);
 
                 //Pull all dresses
                 //GetProducts("black-dresses", "r1", colorfilter);
                 //GetProducts("cocktail-dresses", "r1", colorfilter);
 
                 ////pull all pants
-                //GetProducts("shorts", "r1", colorfilter);
-                //GetProducts("jeans", "r1", colorfilter);
-                //GetProducts("skirts", "r1", colorfilter);
+                GetProducts("shorts", "r1", colorfilter);
+                GetProducts("jeans", "r1", colorfilter);
+                GetProducts("skirts", "r1", colorfilter);
 
 
                 //pull all tops
                 GetProducts("womens-tops", "r1", colorfilter);
                 GetProducts("pants-shorts", "r1", colorfilter);
-                
 
-                ////Get all bags
-                //GetProducts("hobo-bags", "r1", colorfilter);
-                //GetProducts("satchels", "r1" ,colorfilter);
-                //GetProducts("tote-bags", "r1", colorfilter);
-                //GetProducts("wallets", "r1", colorfilter);
+
+                //Get all bags
+                GetProducts("hobo-bags", "r1", colorfilter);
+                GetProducts("satchels", "r1", colorfilter);
+                GetProducts("tote-bags", "r1", colorfilter);
+                GetProducts("wallets", "r1", colorfilter);
             }
 
-            //UpdateAffiliateLinks(1);
+            UpdateAffiliateLinks(1);
             //Look l = new Look();
             //l = Look.GetRandomLook("evening-dresses", "evening-shoes", 2, connectionString);
-            //l = Look.GetLookById(1, connectionString);
+            //l = Look.GetLookById(1, connectionString);*/
         }
+
     }
 }
