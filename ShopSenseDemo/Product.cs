@@ -189,6 +189,8 @@ namespace ShopSenseDemo
         public string AffiliateUrl {get; set;}
         public string swatchUrl { get; set; }
 
+        public bool inCloset { get; set; }
+
         public static bool ColumnExists(IDataReader reader, string columnName)
         {
             for (int i = 0; i < reader.FieldCount; i++)
@@ -277,6 +279,11 @@ namespace ShopSenseDemo
             if (ColumnExists(dr, "SwatchUrl") && !string.IsNullOrEmpty(dr["SwatchUrl"].ToString()))
             {
                 p.swatchUrl = dr["SwatchUrl"].ToString();
+            }
+
+            if (ColumnExists(dr, "InCloset") && !string.IsNullOrEmpty(dr["InCloset"].ToString()))
+            {
+                p.inCloset = true;
             }
 
             return p;

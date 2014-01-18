@@ -44,7 +44,9 @@ namespace ShopSenseDemo
         
         public string contestName { get; set; }
 
-        public int Loved { get; set; }
+        public bool isLoved { get; set; }
+
+        public bool isReStyled { get; set; }
 
         public string TagsFormatted()
         {
@@ -63,6 +65,26 @@ namespace ShopSenseDemo
             Look look = new Look();
             look.products = new List<Product>();
             look.tags = new List<Tag>();
+            
+            while (dr.Read())
+            {
+                if (dr != null)
+                {
+                    int vote = int.Parse(dr["Vote"].ToString());
+                    if (vote != 2)
+                        look.isLoved = true;
+                }
+            }
+            dr.NextResult();
+
+            while (dr.Read())
+            {
+                if (dr != null)
+                {
+                     look.isReStyled = true;
+                }
+            }
+            dr.NextResult();
 
             while (dr.Read())
             {
@@ -116,6 +138,37 @@ namespace ShopSenseDemo
             }
 
             return look;
+        }
+        public static List<Look> GetHPLooks(string db, long uId, long contestId)
+        {
+            List<Look> looks = new List<Look>();
+
+            string query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId;
+            //if (contestId != 0)
+            //{
+            //    query += (", @contestId=" + contestId);
+            //}
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return looks;
         }
 
         //Get looks for homepage
@@ -179,21 +232,8 @@ namespace ShopSenseDemo
                     SqlCommand cmd = adp.SelectCommand;
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
-
-                    while (dr.Read())
-                    {
-                        if (dr != null)
-                        {
-                            int vote = int.Parse(dr["Vote"].ToString());
-                            if(vote != 2)
-                                isVoted = true;
-                        }
-                    }
-                    dr.NextResult();
-                    
                     look = GetLookFromSqlReader(dr);
                 }
-                
             }
             finally
             {
