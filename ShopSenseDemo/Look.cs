@@ -171,6 +171,36 @@ namespace ShopSenseDemo
             return looks;
         }
 
+        public static List<Look> GetTaggedLooks(string db, long uId, long tagId)
+        {
+            List<Look> looks = new List<Look>();
+
+            string query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId;
+            
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return looks;
+        }
+
+
         //Get looks for homepage
         public static List<Look> GetLooksFromSqlReader(SqlDataReader dr)
         {
