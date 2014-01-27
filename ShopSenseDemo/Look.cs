@@ -246,12 +246,11 @@ namespace ShopSenseDemo
         }
 
         //Get look By specific id
-        public static Look GetLookById(long id, long userId, out bool isVoted, string db)
+        public static Look GetLookById(long id, long userId, string db)
         {
             Look look = new Look();
             look.products = new List<Product>();
-            isVoted = false;
-
+            
             string query = "EXEC [stp_SS_GetLookWithUserId] @id=" + id + ", @uid=" + userId;
             SqlConnection myConnection = new SqlConnection(db);
             try

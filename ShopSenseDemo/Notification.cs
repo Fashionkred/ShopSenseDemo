@@ -11,7 +11,9 @@ namespace ShopSenseDemo
         LoveLook = 1,
         FollowUser =2,
         CreateLook = 3,
-        TopLook =4
+        TopLook =4,
+        Welcome = 5,
+        ReStyle = 6
     }
 
     public class Notification
