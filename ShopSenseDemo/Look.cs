@@ -37,6 +37,8 @@ namespace ShopSenseDemo
         [DataMember]
         public int restyleCount { get; set; }
 
+        public int shareCount { get; set; }
+
         public long originalLookId { get; set; }
 
         //TODO: Deprecate contest id and name
@@ -94,6 +96,7 @@ namespace ShopSenseDemo
                 look.title = dr["Title"].ToString();
                 look.restyleCount = int.Parse(dr["ReStyleCount"].ToString());
                 look.viewCount = int.Parse(dr["ViewCount"].ToString());
+                look.shareCount = int.Parse(dr["ShareCount"].ToString());
 
                 if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {

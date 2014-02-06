@@ -384,10 +384,10 @@ namespace ShopSenseDemo
 
         }
 
-        public static Dictionary<string, List<Product>> GetSimilarProducts(string categoryId,string colorId, long brandId,long retailerId , string db)
+        public static Dictionary<string, List<Product>> GetSimilarProducts(string categoryId,string colorId,long productId, long userId, string db)
         {
             Dictionary<string, List<Product>> similarProducts = new Dictionary<string, List<Product>>();
-            string query = "EXEC [stp_SS_GetSimilarProducts] @categoryId=N'" + categoryId + "', @colorId=N'" + colorId + "', @brandId=" + brandId +",@retailerId=" + retailerId;
+            string query = "EXEC [stp_SS_GetSimilarProducts] @categoryId=N'" + categoryId + "', @colorId=N'" + colorId + "', @productId=" + productId + ",@userId=" + userId;
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
