@@ -4,3 +4,13 @@ C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDe
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll.config
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.dll
+E:\Projects\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll.config
+E:\Projects\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll
+E:\Projects\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.pdb
+E:\Projects\Fashion\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.dll
+E:\Projects\Fashion\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.pdb
+D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll.config
+D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll
+D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.pdb
+D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.dll
+D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.pdb
