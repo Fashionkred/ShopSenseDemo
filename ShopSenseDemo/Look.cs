@@ -37,6 +37,8 @@ namespace ShopSenseDemo
         [DataMember]
         public int restyleCount { get; set; }
 
+        public int shareCount { get; set; }
+
         public long originalLookId { get; set; }
 
         //TODO: Deprecate contest id and name
@@ -94,6 +96,7 @@ namespace ShopSenseDemo
                 look.title = dr["Title"].ToString();
                 look.restyleCount = int.Parse(dr["ReStyleCount"].ToString());
                 look.viewCount = int.Parse(dr["ViewCount"].ToString());
+                look.shareCount = int.Parse(dr["ShareCount"].ToString());
 
                 if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {
@@ -171,6 +174,36 @@ namespace ShopSenseDemo
             return looks;
         }
 
+        public static List<Look> GetTaggedLooks(string db, long uId, long tagId)
+        {
+            List<Look> looks = new List<Look>();
+
+            string query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId;
+            
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return looks;
+        }
+
+
         //Get looks for homepage
         public static List<Look> GetLooksFromSqlReader(SqlDataReader dr)
         {
@@ -216,12 +249,11 @@ namespace ShopSenseDemo
         }
 
         //Get look By specific id
-        public static Look GetLookById(long id, long userId, out bool isVoted, string db)
+        public static Look GetLookById(long id, long userId, string db)
         {
             Look look = new Look();
             look.products = new List<Product>();
-            isVoted = false;
-
+            
             string query = "EXEC [stp_SS_GetLookWithUserId] @id=" + id + ", @uid=" + userId;
             SqlConnection myConnection = new SqlConnection(db);
             try

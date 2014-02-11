@@ -105,14 +105,14 @@ namespace ShopSenseDemo
             user.location = dr["Location"].ToString();
             user.facebookId = long.Parse(dr["FacebookId"].ToString());
             user.accessToken = dr["FbAccessToken"].ToString();
-            
+
             return user;
         }
 
         public static UserProfile GetUserProfileById(long id, string db)
         {
             UserProfile user = new UserProfile();
-            
+
             string query = "EXEC [stp_SS_GetUser] @id=" + id;
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -182,11 +182,11 @@ namespace ShopSenseDemo
             }
             fbFriends += "</Friends>";
 
-            string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender + 
+            string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender +
                                                 ", @email=N'" + user.email + "', @location=N'" + user.location.Replace("'", "\"") +
-                                  "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'"+
-                                  ",@flags=" + (int)user.userFlags+",@token='"+user.accessToken +"'" +",@referral=N'" + user.Referral + "'" +
-                                  ", @password=N'" + user.password + "', @ipAddress=N'" + user.ipAddress + "', @userAgent=N'" + user.userAgent + "'" ;
+                                  "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'" +
+                                  ",@flags=" + (int)user.userFlags + ",@token='" + user.accessToken + "'" + ",@referral=N'" + user.Referral + "'" +
+                                  ", @password=N'" + user.password + "', @ipAddress=N'" + user.ipAddress + "', @userAgent=N'" + user.userAgent + "'";
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -215,7 +215,7 @@ namespace ShopSenseDemo
         {
             IList<Product> loves = new List<Product>();
 
-            string query = "EXEC [stp_SS_GetTopLoves] @UId=" + userId + ", @PId1=" + look.products[0].id + ", @PId2=" + look.products[1].id +",@RId=" + retailerId;
+            string query = "EXEC [stp_SS_GetTopLoves] @UId=" + userId + ", @PId1=" + look.products[0].id + ", @PId2=" + look.products[1].id + ",@RId=" + retailerId;
             if (look.products.Count == 3)
             {
                 query += (", @PId3=" + look.products[2].id);
@@ -244,7 +244,7 @@ namespace ShopSenseDemo
                     dr.NextResult();
                     while (dr.Read())
                     {
-                        if(dr != null)
+                        if (dr != null)
                             P1Love = true;
                     }
 
@@ -279,7 +279,7 @@ namespace ShopSenseDemo
             string query = "EXEC [stp_SS_GetTopLoves] @UId=" + userId + ", @PId1=" + product.id + ", @PId2=" + product.id + ",@RId=" + retailerId;
             SqlConnection myConnection = new SqlConnection(db);
 
-            
+
             try
             {
                 myConnection.Open();
@@ -304,11 +304,11 @@ namespace ShopSenseDemo
             return loves;
         }
 
-        public static Dictionary<string,IList<Product>> GetLovesByCategory(long userId, string cat1, string cat2, long retailerId, string db, string cat3=null)
+        public static Dictionary<string, IList<Product>> GetLovesByCategory(long userId, string cat1, string cat2, long retailerId, string db, string cat3 = null)
         {
             Dictionary<string, IList<Product>> favorites = new Dictionary<string, IList<Product>>();
 
-            string query = "EXEC [stp_SS_GetLovesByCategory] @UId=" + userId + ", @categoryId1=N'" + cat1 + "', @categoryId2=N'" + cat2 + "', @retailerId="+retailerId + ",@categoryId3=N'"+ cat3 +"'";
+            string query = "EXEC [stp_SS_GetLovesByCategory] @UId=" + userId + ", @categoryId1=N'" + cat1 + "', @categoryId2=N'" + cat2 + "', @retailerId=" + retailerId + ",@categoryId3=N'" + cat3 + "'";
             SqlConnection myConnection = new SqlConnection(db);
 
 
@@ -324,7 +324,7 @@ namespace ShopSenseDemo
                     int i = 1;
                     do
                     {
-                        
+
                         IList<Product> loves = new List<Product>();
 
                         while (dr.Read())
@@ -370,7 +370,7 @@ namespace ShopSenseDemo
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
 
-                   do
+                    do
                     {
 
                         IList<Product> loves = new List<Product>();
@@ -382,7 +382,7 @@ namespace ShopSenseDemo
                         }
 
                         dr.NextResult();
-                        while(dr.Read())
+                        while (dr.Read())
                         {
                             string categoryName = dr["categoryName"].ToString();
                             if (favorites.ContainsKey(categoryName))
@@ -394,7 +394,7 @@ namespace ShopSenseDemo
                                 favorites.Add(categoryName, loves);
                             }
                         }
-                        
+
 
                     } while (dr.NextResult());
                 }
@@ -406,7 +406,7 @@ namespace ShopSenseDemo
 
             return favorites;
         }
-        
+
         /// <summary>
         /// Check if userId2 is a friend of userId1
         /// </summary>
@@ -480,7 +480,7 @@ namespace ShopSenseDemo
             return user;
         }
     }
-
-    
-    
 }
+    
+    
+

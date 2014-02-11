@@ -69,6 +69,7 @@
     <Compile Include="Category.cs" />
     <Compile Include="CanonicalColors.cs" />
     <Compile Include="Look.cs" />
+    <Compile Include="Notification.cs" />
     <Compile Include="Product.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
