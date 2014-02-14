@@ -318,6 +318,12 @@ namespace ShopSenseDemo
                 return colors[0].canonical[0];
             else return null;
         }
+        public string GetColorName()
+        {
+            if (colors.Count > 0)
+                return colors[0].name;
+            else return null;
+        }
 
         public string GetImageUrl()
         {
