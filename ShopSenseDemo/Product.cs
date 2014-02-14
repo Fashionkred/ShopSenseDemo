@@ -165,7 +165,7 @@ namespace ShopSenseDemo
         public List<Size> sizes { get; set; }
 
         [DataMember]
-        public List<string> categories { get; set; }
+        public List<Category> categories { get; set; }
 
         [DataMember]
         public List<string> categoryNames { get; set; }
@@ -211,7 +211,7 @@ namespace ShopSenseDemo
             p.id = long.Parse(dr["id"].ToString());
             p.name = dr["Name"].ToString();
             p.images = new List<Image>();
-            p.categories = new List<string>();
+            p.categories = new List<Category>();
             p.colors = new List<Color>();
             Image img = new Image();
             img.url = dr["ImageUrl"].ToString();
@@ -251,7 +251,10 @@ namespace ShopSenseDemo
 
             if (ColumnExists(dr, "CategoryId") && !string.IsNullOrEmpty(dr["CategoryId"].ToString()))
             {
-                p.categories.Add(dr["CategoryId"].ToString());
+                Category cat = new Category();
+                cat.id = dr["CategoryId"].ToString();
+                cat.name = dr["CategoryName"].ToString();
+                p.categories.Add(cat);
             }
 
             if (ColumnExists(dr, "IsCover") && !string.IsNullOrEmpty(dr["IsCover"].ToString()))
@@ -266,6 +269,12 @@ namespace ShopSenseDemo
                 Color color = new Color();
                 color.canonical = new List<string>();
                 color.canonical.Add(dr["ColorId"].ToString());
+
+                if (ColumnExists(dr, "ColorName") && !string.IsNullOrEmpty(dr["ColorName"].ToString()))
+                {
+                    color.name = dr["ColorName"].ToString();
+                }
+
                 p.colors.Add(color);
             }
             else if (ColumnExists(dr, "DefaultColorId") && !string.IsNullOrEmpty(dr["DefaultColorId"].ToString()))
@@ -289,10 +298,17 @@ namespace ShopSenseDemo
             return p;
         }
 
-        public string GetCategory()
+        public string GetCategoryId()
         {
             if (categories.Count > 0)
-                return categories[0];
+                return categories[0].id;
+            else return null;
+        }
+
+        public string GetCategoryName()
+        {
+            if (categories.Count > 0)
+                return categories[0].name;
             else return null;
         }
 
@@ -397,7 +413,7 @@ namespace ShopSenseDemo
                     SqlCommand cmd = adp.SelectCommand;
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
-
+                        
                     List<Product> exactSimilarproducts = new List<Product>();
                         
                     while (dr.Read())
@@ -491,9 +507,9 @@ namespace ShopSenseDemo
                 foreach (Product p in products)
                 {
                     string categoryList = "<CategoryList>";
-                    foreach (string categoryid in p.categories)
+                    foreach (Category category in p.categories)
                     {
-                        categoryList += "<Category pId=\"" + p.id + "\" cId=\"" + categoryid + "\" />";
+                        categoryList += "<Category pId=\"" + p.id + "\" cId=\"" + category.id + "\" />";
                     }
                     categoryList += "</CategoryList>";
 
