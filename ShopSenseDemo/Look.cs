@@ -157,16 +157,12 @@ namespace ShopSenseDemo
 
             return look;
         }
-        public static List<Look> GetHPLooks(string db, long uId, long contestId)
+        public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=20)
         {
             List<Look> looks = new List<Look>();
 
-            string query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId;
-            //if (contestId != 0)
-            //{
-            //    query += (", @contestId=" + contestId);
-            //}
-
+            string query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            
             SqlConnection myConnection = new SqlConnection(db);
 
             try
@@ -189,11 +185,11 @@ namespace ShopSenseDemo
             return looks;
         }
 
-        public static List<Look> GetTaggedLooks(string db, long uId, long tagId)
+        public static List<Look> GetTaggedLooks(string db, long uId, long tagId, int offset = 1, int limit = 20)
         {
             List<Look> looks = new List<Look>();
 
-            string query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId;
+            string query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
             
 
             SqlConnection myConnection = new SqlConnection(db);
