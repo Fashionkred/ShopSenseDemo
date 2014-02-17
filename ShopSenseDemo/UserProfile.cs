@@ -479,6 +479,49 @@ namespace ShopSenseDemo
 
             return user;
         }
+
+        public static Dictionary<string, List<Product>> GetClosetProducts(long userId, string db)
+        {
+            Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
+            string query = "EXEC [stp_SS_GetClosetProducts] @userId=" + userId;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    do
+                    {
+                        string type = string.Empty;
+                        List<Product> closetItems = new List<Product>();
+
+                        while (dr.Read())
+                        {
+                            type = dr["type"].ToString();
+                            closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                        }
+                        if (!string.IsNullOrEmpty(type))
+                        {
+                            if (!closetByCategories.ContainsKey(type))
+                                closetByCategories.Add(type, closetItems);
+                            else
+                                closetByCategories[type] = closetItems;
+                        }
+
+                    } while (dr.NextResult());
+                   
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return closetByCategories;
+        }
     }
 }
     

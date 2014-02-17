@@ -37,19 +37,27 @@ namespace ShopSenseDemo
         [DataMember]
         public int restyleCount { get; set; }
 
-        public int shareCount { get; set; }
+        [DataMember]
+        public UserProfile originalCreator { set; get; }
 
+        [DataMember]
+        public bool isLoved { get; set; }
+        
+        [DataMember]
+        public bool isReStyled { get; set; }
+
+        [DataMember]
         public long originalLookId { get; set; }
+
+        [DataMember]
+        public int shareCount { get; set; }
 
         //TODO: Deprecate contest id and name
         public int contestId { get; set; }
         
         public string contestName { get; set; }
 
-        public bool isLoved { get; set; }
-
-        public bool isReStyled { get; set; }
-
+      
         public string TagsFormatted()
         {
             string tagsFormatted = string.Empty;
@@ -118,6 +126,13 @@ namespace ShopSenseDemo
                 while (dr.Read())
                 {
                     look.creator = UserProfile.GetUserFromSqlReader(dr);
+                }
+
+                //read original User
+                dr.NextResult();
+                while(dr.Read())
+                {
+                    look.originalCreator = UserProfile.GetUserFromSqlReader(dr);
                 }
 
                 // read the tags
