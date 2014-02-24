@@ -456,6 +456,68 @@ namespace ShopSenseDemo
             return similarProducts;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="db"></param>
+        /// <param name="categoryId">category if selected</param>
+        /// <param name="colorId"></param>
+        /// <param name="tags">Tags names in a comma separated list</param>
+        /// <param name="offset">offset from where to read</param>
+        /// <param name="limit">how many to read</param>
+        /// <returns></returns>
+        public static Dictionary<string, List<Product>> GetPopularProductsByFilters(long userId, string db, string tags = null, string categoryId = null, string colorId = null, 
+                                                                                     int offset=1, int limit=20)
+        {
+            Dictionary<string, List<Product>> popularProducts = new Dictionary<string, List<Product>>();
+            string query = "EXEC [stp_SS_GetProductsByFilters] @uId =" + userId + ",@offset=" + offset + ",@limit=" + limit;
+            if(categoryId != null)
+                query += ",@categoryId=N'" + categoryId + "'";
+            if(colorId != null)
+                query += ",@colorId=N'" + colorId + "'";
+            if (tags != null)
+                query += ",@tags='" + tags + "'";
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    do
+                    {
+                        string type = string.Empty;
+                        List<Product> closetItems = new List<Product>();
+
+                        while (dr.Read())
+                        {
+                            type = dr["type"].ToString();
+                            closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                        }
+                        if (!string.IsNullOrEmpty(type))
+                        {
+                            if (!popularProducts.ContainsKey(type))
+                                popularProducts.Add(type, closetItems);
+                            else
+                                popularProducts[type] = closetItems;
+                        }
+
+                    } while (dr.NextResult());
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return popularProducts;
+        }
+        
+        
         public Dictionary<string, ProductColorDetails> GetProductColorOptions(long id, string db)
         {
             Dictionary<string, ProductColorDetails> colorOptions = new Dictionary<string, ProductColorDetails>();

@@ -214,6 +214,61 @@ namespace ShopSenseDemo
             return looks;
         }
 
+        public static void DeleteLook(string db, long uId, long lookId, int isEditMode = 0)
+        {
+            string query = "EXEC [stp_SS_DeleteLook] @lid=" + lookId + "@uid=" + uId + "@editLook =" + isEditMode;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+        }
+
+        public static Look SaveLook(string db, string productMap, long userId, string tagMap, string title, long originalLookId = 0, long editLookId = 0)
+        {
+            Look look = new Look();
+
+            string query = "EXEC [stp_SS_SaveLook] @product='" + productMap + "', @uid=" + userId + ",@tag='" + tagMap + "', @title=N'" + title + "'";
+            if (originalLookId!= 0)
+            {
+                query += (", @originalLook=" + originalLookId);
+            }
+
+            if (editLookId!= 0)
+            {
+                query += (", @editLookId=" + editLookId);
+            }
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+                    
+                    look = Look.GetLookFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return look;
+        }
 
         //Get looks for homepage
         public static List<Look> GetLooksFromSqlReader(SqlDataReader dr)
