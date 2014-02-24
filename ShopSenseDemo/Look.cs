@@ -157,7 +157,7 @@ namespace ShopSenseDemo
 
             return look;
         }
-        public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=20)
+        public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=15)
         {
             List<Look> looks = new List<Look>();
 
