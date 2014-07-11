@@ -23,6 +23,8 @@ namespace ShopSenseDemo
 
         //[DataMember]
         //public int count { get; set; }
+        
+        [DataMember]
         public string imageUrl {get; set;}
 
         public static Category GetCategoryFromSqlDataReader(SqlDataReader dr)
@@ -145,6 +147,14 @@ namespace ShopSenseDemo
 
         }
 
+        public static CategoryTree GetCategoryTree(string db)
+        {
+            CategoryTree tree = new CategoryTree();
+            tree.LoadCategoryTree(db);
+            
+            return tree;
+        }
+        
         public string flattenCatTree(Dictionary<Category, List<Category>> catTree, string treeName)
         {
             string flattenTreeString = "<" + treeName + ">";

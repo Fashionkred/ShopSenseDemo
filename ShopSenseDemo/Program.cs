@@ -246,6 +246,9 @@ namespace ShopSenseDemo
             Console.WriteLine(catTree.flattenCatTree(catTree.beautyCats, "Beauty"));
             Console.WriteLine(catTree.flattenCatTree(catTree.shoeCats, "Shoe"));
 
+            //UserProfile.GetClosetProducts(5, connectionString);
+            //Product.GetPopularProductsByFilters(5, connectionString);
+            Product.GetSimilarProducts("Dresses", "", 348981075, 4, connectionString);
             /*foreach (CanonicalColors c in colors)
             {
                 //Get the color code

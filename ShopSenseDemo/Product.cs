@@ -214,12 +214,11 @@ namespace ShopSenseDemo
             p.categories = new List<Category>();
             p.colors = new List<Color>();
             Image img = new Image();
-            img.url = dr["ImageUrl"].ToString();
+            img.url = GetBestImageUrl(dr["ImageUrl"].ToString());
             p.images.Add(img);
             p.url = dr["Url"].ToString();
             p.price = (Decimal)dr["Price"];
             p.salePrice = (Decimal)dr["SalePrice"];
-            p.description = dr["Description"].ToString();
             p.loves = int.Parse(dr["Loves"].ToString());
             p.brandId = int.Parse(dr["BrandId"].ToString());
             p.retailerId = int.Parse(dr["RetailerId"].ToString());
@@ -241,7 +240,6 @@ namespace ShopSenseDemo
                 p.AffiliateUrl = dr["AffiliateUrl"].ToString();
                 //p.url = p.AffiliateUrl;
             }
-
             if ( ColumnExists(dr, "ColorImageUrl") &&  !string.IsNullOrEmpty(dr["ColorImageUrl"].ToString()))
             {
                 Image colorImg = new Image();
@@ -324,7 +322,15 @@ namespace ShopSenseDemo
                 return colors[0].name;
             else return null;
         }
+        public static string GetBestImageUrl(string imageUrl)
+        {
+            string thumbnail = imageUrl.Replace("xim", "pim");
+            thumbnail = thumbnail.Replace("resources", "bim");
+            
+            thumbnail = thumbnail.Replace(".jpg", "_best.jpg");
 
+            return thumbnail;
+        }
         public string GetImageUrl()
         {
             string bigPic = this.images[0].url.Replace("pim", "xim");
@@ -518,11 +524,11 @@ namespace ShopSenseDemo
         }
         
         
-        public Dictionary<string, ProductColorDetails> GetProductColorOptions(long id, string db)
+        public static Dictionary<string, ProductColorDetails> GetProductColorOptions(long productId, string db)
         {
             Dictionary<string, ProductColorDetails> colorOptions = new Dictionary<string, ProductColorDetails>();
 
-            string query = "EXEC [stp_SS_GetProductColorOptions] @id=" + id;
+            string query = "EXEC [stp_SS_GetProductColorOptions] @pId=" + productId;
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -551,6 +557,67 @@ namespace ShopSenseDemo
                 myConnection.Close();
             }
             return colorOptions;
+        }
+
+        public static List<Product> GetTaggedPopularProducts(long tagId, long uId, string db, int offset = 1, int limit = 20)
+        {
+            List<Product> products = new List<Product>();
+
+            string query = "EXEC [stp_SS_GetTaggedPopularItems]  @tagId=" + tagId + ",@userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    
+                    while (dr.Read())
+                    {
+                        products.Add(GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return products;
+        }
+
+        public static bool HeartItem(long userId, long productId,bool isHeart,string colorId, string catId, string db)
+        {
+            int heart = isHeart == true ? 1 : 0;
+            bool isSuccess = false;
+
+            string query = "EXEC [stp_SS_SaveLove] @uid=" + userId + ", @pid=" + productId + ",@love=" + heart+ ",@colorId='" + colorId + "',@catId='" + catId +"'" ;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            Product p = new Product();
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    isSuccess = true;
+                    
+                }
+
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
         }
     }
 

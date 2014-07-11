@@ -89,7 +89,7 @@ namespace ShopSenseDemo
 
             while (dr.Read())
             {
-                if (dr != null)
+                if (dr != null && (int)dr[0] != 0)
                 {
                      look.isReStyled = true;
                 }
@@ -137,13 +137,9 @@ namespace ShopSenseDemo
 
                 // read the tags
                 dr.NextResult();
-                while (dr.Read())
-                {
-                    long tagId = long.Parse(dr["id"].ToString());
-                    string tagName = dr["Name"].ToString();
-                    Tag tag = new Tag(tagId, tagName);
-                    look.tags.Add(tag);
-                }
+                List<Tag> tags = Tag.GetTagsFromSqlReader(dr);
+                look.tags = tags;
+                
                    
                 //read the products
                 if (dr.NextResult())
@@ -157,40 +153,19 @@ namespace ShopSenseDemo
 
             return look;
         }
-        public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=15)
+        public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=15, bool isPopular = false)
         {
             List<Look> looks = new List<Look>();
+            string query;
 
-            string query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
-            
-            SqlConnection myConnection = new SqlConnection(db);
-
-            try
+            if (isPopular)
             {
-                myConnection.Open();
-                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
-                {
-                    SqlCommand cmd = adp.SelectCommand;
-                    cmd.CommandTimeout = 300000;
-                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
-
-                    looks = Look.GetLooksFromSqlReader(dr);
-                }
+                query = "EXEC [stp_SS_GetPopularLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
             }
-            finally
+            else
             {
-                myConnection.Close();
+                query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
             }
-
-            return looks;
-        }
-
-        public static List<Look> GetTaggedLooks(string db, long uId, long tagId, int offset = 1, int limit = 20)
-        {
-            List<Look> looks = new List<Look>();
-
-            string query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
-            
 
             SqlConnection myConnection = new SqlConnection(db);
 
@@ -214,9 +189,21 @@ namespace ShopSenseDemo
             return looks;
         }
 
-        public static void DeleteLook(string db, long uId, long lookId, int isEditMode = 0)
+        public static List<Look> GetTaggedLooks(string db, long uId, long tagId, int offset = 1, int limit = 20, bool isPopular= false)
         {
-            string query = "EXEC [stp_SS_DeleteLook] @lid=" + lookId + "@uid=" + uId + "@editLook =" + isEditMode;
+            List<Look> looks = new List<Look>();
+
+            string query;
+
+            if (isPopular)
+            {
+                query = "EXEC [stp_SS_GetTaggedPopularLooks] @tagId=" + tagId + ",@userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            }
+            else
+            {
+                query = "EXEC [stp_SS_GetTaggedLooks] @tagId=" + tagId + ",@userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            }
+
             SqlConnection myConnection = new SqlConnection(db);
 
             try
@@ -227,12 +214,39 @@ namespace ShopSenseDemo
                     SqlCommand cmd = adp.SelectCommand;
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
                 }
             }
             finally
             {
                 myConnection.Close();
             }
+
+            return looks;
+        }
+
+        public static bool DeleteLook(string db, long uId, long lookId, int isEditMode = 0)
+        {
+            string query = "EXEC [stp_SS_DeleteLook] @lid=" + lookId + ",@uid=" + uId + ",@editLook =" + isEditMode;
+            SqlConnection myConnection = new SqlConnection(db);
+            bool isSuccess = false;
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+                    isSuccess = true;
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
         }
 
         public static Look SaveLook(string db, string productMap, long userId, string tagMap, string title, long originalLookId = 0, long editLookId = 0)
@@ -370,6 +384,35 @@ namespace ShopSenseDemo
                 myConnection.Close();
             }
             return look;
+        }
+
+        //heart a look
+        public static bool HeartLook(long userId, long lookId, bool isHeart,  string db)
+        {
+            bool isSuccess = false;
+
+            int heart = isHeart == true ? 1 : 0;
+
+            string query = "EXEC [stp_SS_SaveVote] @uid=" + userId + ", @lid=" + lookId + ", @vote=" + heart + ", @pointinc=" + 0;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+                
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
         }
     }
 }

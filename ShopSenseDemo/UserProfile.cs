@@ -480,6 +480,33 @@ namespace ShopSenseDemo
             return user;
         }
 
+        public static UserProfile LogInViaFb(long facebookId, string db)
+        {
+            UserProfile user = null;
+            string query = "EXEC [stp_SS_LoginByFb] @facebookId =" + facebookId;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        user = UserProfile.GetUserFromSqlReader(dr);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return user;
+        }
+
         public static Dictionary<string, List<Product>> GetClosetProducts(long userId, string db)
         {
             Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
@@ -522,6 +549,133 @@ namespace ShopSenseDemo
             }
             return closetByCategories;
         }
+
+        public static Dictionary<string, List<Product>> GetClosetProductsByMetaCat(long userId,string metaCat,  string db, int offset = 1, int limit = 20)
+        {
+            Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
+            string query = "EXEC [stp_SS_GetClosetProductsByMetaCat] @userId=" + userId + ",@metaCat='" + metaCat + "',@offset=" + offset + ",@limit=" + limit;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        string type = dr["type"].ToString();
+                        if (!closetByCategories.ContainsKey(type))
+                        {
+                            List<Product> closetItems = new List<Product>();
+                            closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                            closetByCategories.Add(type, closetItems);
+
+                        }
+                            
+                        else
+                            closetByCategories[type].Add(Product.GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return closetByCategories;
+        }
+
+        public static List<Product> GetClosetProductsByDate(long userId, string db, int offset = 1, int limit = 20)
+        {
+            List<Product> closetItems = new List<Product>(); 
+            string query = "EXEC [stp_SS_GetClosetProductsByDate] @userId=" + userId + ",@offset=" + offset + ",@limit=" + limit;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return closetItems;
+        }
+
+        public static List<UserProfile> GetTaggedPopularStylists(long tagId, long uId, string db)
+        {
+            List<UserProfile> users = new List<UserProfile>();
+
+            string query = "EXEC [stp_SS_GetTaggedPopularStylists]  @tagId=" + tagId + ",@userId=" + uId;
+            
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    
+                    while (dr.Read())
+                    {
+                        UserProfile user = new UserProfile();
+                        user.id = long.Parse(dr["Id"].ToString());
+                        user.pic = dr["Pic"].ToString();
+                        user.name = dr["Name"].ToString();
+                        users.Add(user);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return users;
+        }
+
+        public static bool SubscribeUser(long userId, long subscriberId, bool isSubscribe, string db)
+        {
+            bool isSuccess = false;
+
+            int heart = isSubscribe == true ? 1 : 0;
+
+            string query = "EXEC [stp_SS_Subscribe] @uid=" + userId + ", @sid=" + subscriberId + ",@subscribe=" + isSubscribe;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
+        
     }
 }
     
