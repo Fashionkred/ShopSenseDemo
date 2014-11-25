@@ -26,8 +26,8 @@ namespace ShopSenseDemo
         [DataMember]
         public List<Filter> filters { get; set; }
 
-        [DataMember]
-        public string FreeTextSearch { get; set; }
+        //[DataMember]
+        //public string FreeTextSearch { get; set; }
     }
 
     [DataContract]
@@ -63,23 +63,40 @@ namespace ShopSenseDemo
     public class Color
     {
         [DataMember]
-        public List<string> canonical { get; set; }
-
-        [DataMember]
-        public List<Image> images {set; get;}
-
-        [DataMember]
         public string name { get; set; }
 
         [DataMember]
+        public string imageEncodedUrl { get; set; }
+
+        [DataMember]
+        public List<Image> images { set; get; }
+
+        [DataMember]
         public string swatchUrl { get; set; }
+
+        [DataMember]
+        public List<string> canonical { get; set; }
+
     }
 
     [DataContract]
     public class Size
     {
         [DataMember]
+        public string name { get; set; }
+
+        [DataMember]
         public string canonical { get; set; }
+    }
+
+    [DataContract]
+    public class Inventory
+    {
+        [DataMember]
+        public string color { get; set; }
+
+        [DataMember]
+        public string size { get; set; }
     }
 
     [DataContract]
@@ -119,10 +136,10 @@ namespace ShopSenseDemo
         [DataMember]
         public string priceLabel { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired = false)]
         public Decimal salePrice { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired = false)]
         public string salePriceLabel { get; set; }
 
         [DataMember]
@@ -154,6 +171,9 @@ namespace ShopSenseDemo
 
         [DataMember]
         public string url { get; set; }
+
+        [DataMember]
+        public string imageEncodedUrl { get; set; }
  
         [DataMember]
         public List<Image> images { get; set; }
@@ -165,7 +185,10 @@ namespace ShopSenseDemo
         public List<Size> sizes { get; set; }
 
         [DataMember]
-        public List<Category> categories { get; set; }
+        public List<Inventory> inventory { get; set; }
+
+        [DataMember]
+        public List<string> categories { get; set; }
 
         [DataMember]
         public List<string> categoryNames { get; set; }
@@ -176,20 +199,27 @@ namespace ShopSenseDemo
         [DataMember]
         public string seeMoreUrl { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired=false)]
         public string extractDate { get; set; }
 
-        [DataMember]
+         [DataMember(IsRequired = false)]
         public int loves { get; set; }
-
+         [DataMember(IsRequired=false)]
         public string colorId { get; set; }
-
+         [DataMember(IsRequired=false)]
         public bool isCover { get; set; }
+         [DataMember(IsRequired=false)]
         public string sizeString { get; set; }
+         [DataMember(IsRequired=false)]
         public string AffiliateUrl {get; set;}
+         [DataMember(IsRequired=false)]
         public string swatchUrl { get; set; }
-
+         [DataMember(IsRequired=false)]
         public bool inCloset { get; set; }
+         [DataMember(IsRequired=false)]
+        public bool inMultipleColors { get; set; }
+
+         public bool isNewItem { get; set; }
 
         public static bool ColumnExists(IDataReader reader, string columnName)
         {
@@ -209,9 +239,10 @@ namespace ShopSenseDemo
             Product p = new Product();
 
             p.id = long.Parse(dr["id"].ToString());
-            p.name = dr["Name"].ToString();
+            p.name = dr["Name"].ToString().Replace("\"","'" );
             p.images = new List<Image>();
-            p.categories = new List<Category>();
+            p.categories = new List<string>();
+            p.categoryNames = new List<string>();
             p.colors = new List<Color>();
             Image img = new Image();
             img.url = GetBestImageUrl(dr["ImageUrl"].ToString());
@@ -223,16 +254,24 @@ namespace ShopSenseDemo
             p.brandId = int.Parse(dr["BrandId"].ToString());
             p.retailerId = int.Parse(dr["RetailerId"].ToString());
             p.sizeString =  dr["Size"].ToString().TrimEnd(',');
+            p.extractDate = dr["ExtractDate"].ToString();
+
+            if (!string.IsNullOrEmpty(p.extractDate))
+            {
+                DateTime extractDate = DateTime.Parse(p.extractDate);
+                if (extractDate > DateTime.UtcNow.Subtract(new TimeSpan(15, 0, 0, 0)))
+                    p.isNewItem = true;
+            }
             
 
             if (dr["BrandName"] != null)
             {
-                p.brandName = dr["BrandName"].ToString();
+                p.brandName = dr["BrandName"].ToString().Replace("\"", "'");
             }
             
             if (dr["RetailerName"] != null)
             {
-                p.retailer = dr["RetailerName"].ToString();
+                p.retailer = dr["RetailerName"].ToString().Replace("\"", "'");
             }
 
             if (!string.IsNullOrEmpty(dr["AffiliateUrl"].ToString()))
@@ -249,10 +288,17 @@ namespace ShopSenseDemo
 
             if (ColumnExists(dr, "CategoryId") && !string.IsNullOrEmpty(dr["CategoryId"].ToString()))
             {
-                Category cat = new Category();
-                cat.id = dr["CategoryId"].ToString();
-                cat.name = dr["CategoryName"].ToString();
+                string cat =  dr["CategoryId"].ToString();
+                string catName = dr["CategoryName"].ToString().Replace("\"", "'");
                 p.categories.Add(cat);
+                p.categoryNames.Add(catName);
+            }
+            else if (ColumnExists(dr, "DefaultCatId") && !string.IsNullOrEmpty(dr["DefaultCatId"].ToString()))
+            {
+                string cat = dr["DefaultCatId"].ToString();
+                string catName = dr["DefaultCatName"].ToString().Replace("\"", "'");
+                p.categories.Add(cat);
+                p.categoryNames.Add(catName);
             }
 
             if (ColumnExists(dr, "IsCover") && !string.IsNullOrEmpty(dr["IsCover"].ToString()))
@@ -270,7 +316,7 @@ namespace ShopSenseDemo
 
                 if (ColumnExists(dr, "ColorName") && !string.IsNullOrEmpty(dr["ColorName"].ToString()))
                 {
-                    color.name = dr["ColorName"].ToString();
+                    color.name = dr["ColorName"].ToString().Replace("\"", "'");
                 }
 
                 p.colors.Add(color);
@@ -280,6 +326,7 @@ namespace ShopSenseDemo
                 Color color = new Color();
                 color.canonical = new List<string>();
                 color.canonical.Add(dr["DefaultColorId"].ToString());
+                color.name = dr["DefaultColorId"].ToString();
                 p.colors.Add(color);
             }
 
@@ -290,8 +337,18 @@ namespace ShopSenseDemo
 
             if (ColumnExists(dr, "InCloset") && !string.IsNullOrEmpty(dr["InCloset"].ToString()))
             {
-                p.inCloset = true;
+                if(dr["InCloset"].ToString()!="0")
+                    p.inCloset = true;
             }
+            if (ColumnExists(dr, "InMultipleColors") && !string.IsNullOrEmpty(dr["InMultipleColors"].ToString()))
+            {
+                if (dr["InMultipleColors"].ToString() != "False")
+                    p.inMultipleColors = true;
+            }
+
+            //Trim product name out of brand name   case insensitive
+            if (p.name.ToLower().Contains(p.brandName.ToLower()))
+                p.name = p.name.Substring(p.brandName.Length + 1);
 
             return p;
         }
@@ -299,14 +356,14 @@ namespace ShopSenseDemo
         public string GetCategoryId()
         {
             if (categories.Count > 0)
-                return categories[0].id;
+                return categories[0];
             else return null;
         }
 
         public string GetCategoryName()
         {
             if (categories.Count > 0)
-                return categories[0].name;
+                return categoryNames[0];
             else return null;
         }
 
@@ -473,8 +530,8 @@ namespace ShopSenseDemo
         /// <param name="offset">offset from where to read</param>
         /// <param name="limit">how many to read</param>
         /// <returns></returns>
-        public static Dictionary<string, List<Product>> GetPopularProductsByFilters(long userId, string db, string tags = null, string categoryId = null, string colorId = null, 
-                                                                                     int offset=1, int limit=20)
+        public static Dictionary<string, List<Product>> GetPopularProductsByFilters(long userId, string db, int brandId=0,string tags = null, string categoryId = null, string colorId = null, 
+                                                                                      int offset=1, int limit=20)
         {
             Dictionary<string, List<Product>> popularProducts = new Dictionary<string, List<Product>>();
             string query = "EXEC [stp_SS_GetProductsByFilters] @uId =" + userId + ",@offset=" + offset + ",@limit=" + limit;
@@ -483,7 +540,61 @@ namespace ShopSenseDemo
             if(colorId != null)
                 query += ",@colorId=N'" + colorId + "'";
             if (tags != null)
-                query += ",@tags='" + tags + "'";
+                query += ",@tags=N'" + tags + "'";
+            if(brandId !=0 )
+                query += ",@brandId=" + brandId;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    do
+                    {
+                        string type = string.Empty;
+                        List<Product> closetItems = new List<Product>();
+
+                        while (dr.Read())
+                        {
+                            type = dr["type"].ToString();
+                            closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                        }
+                        if (!string.IsNullOrEmpty(type))
+                        {
+                            if (!popularProducts.ContainsKey(type))
+                                popularProducts.Add(type, closetItems);
+                            else
+                                popularProducts[type] = closetItems;
+                        }
+
+                    } while (dr.NextResult());
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return popularProducts;
+        }
+
+        public static Dictionary<string, List<Product>> GetPopularProductsByFiltersv2(long userId, string db, int brandId = 0, string tags = null, string categoryId = null, string colorId = null,
+                                                                                      int offset = 1, int limit = 20)
+        {
+            Dictionary<string, List<Product>> popularProducts = new Dictionary<string, List<Product>>();
+            string query = "EXEC [stp_SS_GetPopularProductsByFilters] @uId =" + userId + ",@offset=" + offset + ",@limit=" + limit;
+            if (categoryId != null)
+                query += ",@categoryId=N'" + categoryId + "'";
+            if (colorId != null)
+                query += ",@colorId=N'" + colorId + "'";
+            if (tags != null)
+                query += ",@tags=N'" + tags + "'";
+            if (brandId != 0)
+                query += ",@brandId=" + brandId;
 
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -542,7 +653,7 @@ namespace ShopSenseDemo
                     while (dr.Read())
                     {
                         ProductColorDetails details = new ProductColorDetails();
-                        details.colorId = dr["ColorId"].ToString();
+                        details.colorId = dr["ColorId"].ToString().Replace("''", "'");
                         details.imageUrl = dr["ImageUrl"].ToString();
                         details.swatchUrl = dr["SwatchUrl"].ToString();
                         details.colorName = dr["ColorName"].ToString();
@@ -576,6 +687,37 @@ namespace ShopSenseDemo
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
 
                     
+                    while (dr.Read())
+                    {
+                        products.Add(GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return products;
+        }
+
+        public static List<Product> GetPopularProductsByUser(long uId, string db, int offset = 1, int limit = 20)
+        {
+            List<Product> products = new List<Product>();
+
+            string query = "EXEC [stp_SS_GetHotItems] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+
                     while (dr.Read())
                     {
                         products.Add(GetProductFromSqlDataReader(dr));
@@ -642,11 +784,13 @@ namespace ShopSenseDemo
                 foreach (Product p in products)
                 {
                     string categoryList = "<CategoryList>";
-                    foreach (Category category in p.categories)
+                    foreach (string category in p.categories)
                     {
-                        categoryList += "<Category pId=\"" + p.id + "\" cId=\"" + category.id + "\" />";
+                        categoryList += "<Category pId=\"" + p.id + "\" cId=\"" + category.Replace("'", "''") + "\" />";
                     }
                     categoryList += "</CategoryList>";
+                    string defaultCatId = p.categories[0];
+                    string defaultCatName = p.categoryNames[0];
 
                     string colorList = "<ColorList>";
                     string defaultColorId = null;
@@ -662,10 +806,30 @@ namespace ShopSenseDemo
                                 if(p.GetImageUrl() == p.images[3].url)
                                     defaultColorId = color.canonical[0];
                             }
-                            colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" cname=\"" + color.name +
+                            colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" cname=\"" + color.name.Replace("'", "''") +
                                "\" surl=\"" + color.swatchUrl + "\" />";
                         }
                     }
+                    
+                    //update the ismultiplecolor fiels
+                    if (p.colors.Count > 1)
+                        p.inMultipleColors = true;
+                    
+                    //force a default image url
+                    if (string.IsNullOrEmpty(defaultColorId) && p.colors.Count >=1)
+                    {
+                        Color color = p.colors[0];
+                        if (color.images != null && color.canonical !=null)
+                        {
+                            defaultColorId = p.colors[0].canonical[0];
+                            string imageUrl = color.images[3].url.Replace("'", "\"");
+                            p.images[3].url = imageUrl;
+
+                        }
+                        else
+                            continue;
+                    }
+
                     colorList += "</ColorList>";
 
                     string sizeList = string.Empty;
@@ -674,14 +838,15 @@ namespace ShopSenseDemo
                         sizeList += size.canonical;
                         sizeList += ",";
                     }
-                    p.AffiliateUrl = AffiliateLink.GetAffiliateLink(p.url);
+                    //p.AffiliateUrl = AffiliateLink.GetAffiliateLink(p.url);
                
                     string query = "EXEC [stp_SS_SaveProduct] @id=" + p.id + ", @name=N'" + p.name.Replace("'", "\"") + "', @price=" + p.price + ", @saleprice=" + p.salePrice +
                                                                 ", @inStock=" + p.inStock + ", @retailerId=" + p.retailerId + ", @url=N'" + p.url.Replace("'", "\"") +
                                                                 "', @locale='" + p.locale.Replace("'", "\"") + "', @description=N'" + p.description.Replace("'", "\"") +
                                                                 "', @brandId=" + p.brandId + ", @imageUrl=N'" + p.images[3].url.Replace("'", "\"") + "', @color='" + colorList +
                                                                 "', @size=N'" + sizeList.Replace("'", "\"") + "', @seeMoreUrl=N'"+ p.seeMoreUrl.Replace("'", "\"") +
-                   "', @extractDate='" + p.extractDate + "', @categoryList='" + categoryList + "',@affiliateUrl=N'" + p.AffiliateUrl + "', @defaultColorId=N'" + defaultColorId + "'" ;
+                   "', @extractDate='" + p.extractDate + "', @categoryList='" + categoryList + "',@affiliateUrl=N'" + p.AffiliateUrl + "', @defaultColorId=N'" + defaultColorId.Replace("'", "\"") +
+                   "', @inColors=" + p.inMultipleColors + ", @defaultCatId='" + defaultCatId.Replace("'", "\"") + "', @defaultCatName='" + defaultCatName.Replace("'", "\"") + "'";
 
                     try
                     {

@@ -68,6 +68,7 @@
     <Compile Include="Brand.cs" />
     <Compile Include="Category.cs" />
     <Compile Include="CanonicalColors.cs" />
+    <Compile Include="Comment.cs" />
     <Compile Include="Look.cs" />
     <Compile Include="Notification.cs" />
     <Compile Include="Product.cs" />

@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Data.SqlClient;
 using System.IO;
 using System.Runtime.Serialization.Json;
+using System.Data;
 
 namespace ShopSenseDemo
 {
@@ -15,26 +16,111 @@ namespace ShopSenseDemo
         [DataMember]
         public string id { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired = false)]
         public string parentId { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired = false)]
         public string name { get; set; }
 
         //[DataMember]
         //public int count { get; set; }
-        
-        [DataMember]
+
+        [DataMember(IsRequired = false)]
         public string imageUrl {get; set;}
+
+        [DataMember(IsRequired = false)]
+        public string shortName { get; set; }
+
+        public static bool ColumnExists(IDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i) == columnName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public static Category GetCategoryFromSqlDataReader(SqlDataReader dr)
         {
             Category cat = new Category();
-            cat.name = dr["Name"].ToString();
+            cat.name = dr["Name"].ToString().Replace("''", "'");
             cat.id = dr["Id"].ToString();
             cat.parentId = dr["ParentId"].ToString();
             cat.imageUrl = dr["ImageUrl"].ToString();
+            if (ColumnExists(dr, "ShortName") && !string.IsNullOrEmpty(dr["ShortName"].ToString()))
+            {
+
+                cat.shortName = dr["ShortName"].ToString();
+            }
             return cat;
+        }
+
+        public static Dictionary<Category, List<Category>>  GetMetaCategories(string db)
+        {
+            Dictionary<Category, List<Category>> metaCats = new Dictionary<Category, List<Category>>();
+            string query = "EXEC [stp_SS_LoadMetaCategoryTree]";
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        Category cat = Category.GetCategoryFromSqlDataReader(dr);
+
+                        if (metaCats.Keys.Contains(cat))
+                        {
+                            throw new Exception();
+                        }
+                        else
+                        {
+                            List<Category> childrenCats = new List<Category>();
+                            //childrenCats.Add(cat);
+                            metaCats.Add(cat, childrenCats);
+                        }
+                    }
+
+                    dr.NextResult();
+                    
+                    //get child cats
+                    while (dr.Read())
+                    {
+                        Category cat = Category.GetCategoryFromSqlDataReader(dr);
+
+                        var parentCat =
+                                from c in metaCats.Keys
+                                where c.id == cat.parentId
+                                select c;
+
+                        foreach (var pCat in parentCat)
+                        {
+                            metaCats[pCat].Add(cat);
+                        }
+                    }
+
+                    //trim single child nodes
+                    foreach (Category c in metaCats.Keys)
+                    {
+                        if (metaCats[c].Count == 1)
+                            metaCats[c].RemoveAt(0);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return metaCats;
         }
 
     }

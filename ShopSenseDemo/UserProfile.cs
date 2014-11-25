@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
+using System.Runtime.Serialization;
+using System.Data;
 
 namespace ShopSenseDemo
 {
@@ -20,9 +22,46 @@ namespace ShopSenseDemo
         FeaturedUser = 0x08
     }
 
+    [DataContract]
+    public class LightUser
+    {
+         
+        public long userId { set; get; }
+
+        public string userName { set; get; }
+
+        public string name { set; get; }
+
+        public string pic { set; get; }
+
+        public string activityType { set; get; }
+
+        public string activityTime { set; get; }
+
+        public static LightUser GetUserFromSqlReader(SqlDataReader dr)
+        {
+            LightUser user = new LightUser();
+            user.userId = long.Parse(dr["Id"].ToString());
+            user.pic = dr["pic"].ToString();
+            user.userName = dr["UserName"].ToString();
+            user.activityType = dr["type"].ToString();
+            user.activityTime = dr["time"].ToString();
+            if (!string.IsNullOrEmpty(dr["Name"].ToString()))
+            {
+                user.name = dr["Name"].ToString();
+            }
+
+            return user;
+        }
+    }
+
+
+    [DataContract]
     public class UserProfile
     {
-        public long id { set; get; }
+        public long userId { set; get; }
+
+        public string userName { set; get; }
 
         public string name { set; get; }
 
@@ -30,9 +69,9 @@ namespace ShopSenseDemo
 
         public string pic { set; get; }
 
-        public string email { set; get; }
+        public string emailId { set; get; }
 
-        public Sex sex { set; get; }
+        public Sex gender { set; get; }
 
         public string location { set; get; }
 
@@ -50,9 +89,17 @@ namespace ShopSenseDemo
 
         public string password { set; get; }
 
-        public string ipAddress { set; get; }
+        public string bio { set; get; }
 
-        public string userAgent { set; get; }
+        public string url { set; get; }
+
+        public string fbPage { set; get; }
+
+        public string twitterHandle { set; get; }
+
+        public string PinterestHandle { set; get; }
+
+        public string TumblrHandle { set; get; }
 
         public virtual bool IsPrivate
         {
@@ -61,6 +108,16 @@ namespace ShopSenseDemo
                 return (this.userFlags & UserFlags.PrivateSharing) == UserFlags.PrivateSharing;
             }
         }
+
+        public virtual bool IsStylist
+        {
+            get
+            {
+                return (this.userFlags & UserFlags.Stylist) == UserFlags.Stylist;
+            }
+        }
+
+        public bool IsNew { set; get; }
 
         public int IsFollowing { set; get; }
 
@@ -79,13 +136,26 @@ namespace ShopSenseDemo
             return pic + "&height=50";
         }
 
+        public static bool ColumnExists(IDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i) == columnName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public UserProfile()
         {
             this.name = string.Empty;
             this.points = 0;
             this.pic = string.Empty;
-            this.email = string.Empty;
-            this.sex = Sex.Female;
+            this.emailId = string.Empty;
+            this.gender = Sex.Female;
             this.location = "Unknown";
             this.facebookId = -1;
             this.accessToken = string.Empty;
@@ -98,14 +168,74 @@ namespace ShopSenseDemo
         public static UserProfile GetUserFromSqlReader(SqlDataReader dr)
         {
             UserProfile user = new UserProfile();
-            user.id = long.Parse(dr["Id"].ToString());
+            user.userId = long.Parse(dr["Id"].ToString());
             user.pic = dr["Pic"].ToString();
-            user.name = dr["Name"].ToString();
-            user.points = int.Parse(dr["Points"].ToString());
-            user.location = dr["Location"].ToString();
-            user.facebookId = long.Parse(dr["FacebookId"].ToString());
-            user.accessToken = dr["FbAccessToken"].ToString();
+            user.userName = dr["UserName"].ToString();
+            if (!string.IsNullOrEmpty(dr["Name"].ToString()))
+            {
+                user.name = dr["Name"].ToString();
+            }
 
+            //if (!string.IsNullOrEmpty(dr["Points"].ToString()))
+            //{
+            //    user.points = int.Parse(dr["Points"].ToString());
+            //}
+            if (!string.IsNullOrEmpty(dr["Location"].ToString()))
+            {
+                user.location = dr["Location"].ToString();
+            }
+            if (!string.IsNullOrEmpty(dr["FacebookId"].ToString()))
+            {
+                user.facebookId = long.Parse(dr["FacebookId"].ToString());
+            }
+            if (!string.IsNullOrEmpty(dr["FbAccessToken"].ToString()))
+            {
+                user.accessToken = dr["FbAccessToken"].ToString();
+            }
+            if (ColumnExists(dr, "following") && !string.IsNullOrEmpty(dr["following"].ToString()))
+            {
+                user.IsFollowing = int.Parse(dr["following"].ToString());
+            }
+            if (ColumnExists(dr, "Email") && !string.IsNullOrEmpty(dr["Email"].ToString()))
+            {
+                user.emailId = dr["Email"].ToString();
+            }
+            if (ColumnExists(dr, "Bio") && !string.IsNullOrEmpty(dr["Bio"].ToString()))
+            {
+                user.bio = dr["Bio"].ToString();
+            }
+            if (ColumnExists(dr, "Url") && !string.IsNullOrEmpty(dr["Url"].ToString()))
+            {
+                user.url = dr["Url"].ToString();
+            }
+            if (ColumnExists(dr, "FbPage") && !string.IsNullOrEmpty(dr["FbPage"].ToString()))
+            {
+                user.fbPage = dr["FbPage"].ToString();
+            }
+            if (ColumnExists(dr, "TwName") && !string.IsNullOrEmpty(dr["TwName"].ToString()))
+            {
+                user.twitterHandle = dr["TwName"].ToString();
+            }
+            if (ColumnExists(dr, "PinName") && !string.IsNullOrEmpty(dr["PinName"].ToString()))
+            {
+                user.PinterestHandle = dr["PinName"].ToString();
+            }
+            if (ColumnExists(dr, "TumName") && !string.IsNullOrEmpty(dr["TumName"].ToString()))
+            {
+                user.TumblrHandle = dr["TumName"].ToString();
+            }
+            if (ColumnExists(dr, "Createtime") && !string.IsNullOrEmpty(dr["Createtime"].ToString()))
+            {
+                DateTime createTime = DateTime.Parse(dr["Createtime"].ToString());
+                if (DateTime.UtcNow.Subtract(createTime).TotalMinutes > 1)
+                    user.IsNew = false;
+                else
+                    user.IsNew = true;
+            }
+            if (ColumnExists(dr, "Flags") && !string.IsNullOrEmpty(dr["Flags"].ToString()))
+            {
+                user.userFlags = (UserFlags) Enum.Parse(typeof(UserFlags), dr["Flags"].ToString());
+            }
             return user;
         }
 
@@ -172,7 +302,7 @@ namespace ShopSenseDemo
             updatedUser = user;
 
             int gender = 0;
-            if (user.sex == Sex.Male)
+            if (user.gender == Sex.Male)
                 gender = 1;
 
             string fbFriends = "<Friends>";
@@ -183,10 +313,48 @@ namespace ShopSenseDemo
             fbFriends += "</Friends>";
 
             string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender +
-                                                ", @email=N'" + user.email + "', @location=N'" + user.location.Replace("'", "\"") +
+                                                ", @email=N'" + user.emailId + "', @location=N'" + user.location.Replace("'", "\"") +
                                   "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'" +
                                   ",@flags=" + (int)user.userFlags + ",@token='" + user.accessToken + "'" + ",@referral=N'" + user.Referral + "'" +
-                                  ", @password=N'" + user.password + "', @ipAddress=N'" + user.ipAddress + "', @userAgent=N'" + user.userAgent + "'";
+                                  ", @password=N'" + user.password + "', @userName=N'" + user.userName + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        updatedUser = GetUserFromSqlReader(dr);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return updatedUser;
+        }
+
+        public static UserProfile UpdateUserInfo(UserProfile user, string db)
+        {
+            UserProfile updatedUser = new UserProfile();
+            //updatedUser = user;
+
+            int gender = 0;
+            if (user.gender == Sex.Male)
+                gender = 1;
+
+            string query = "EXEC [stp_SS_UpdateUserInfo] @id=" + user.userId +  ", @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender +
+                                                ", @email=N'" + user.emailId + "', @location=N'" + user.location.Replace("'", "\"") +
+                                                "', @userName=N'" + user.userName + "', @bio=N'" + user.bio + "', @url=N'" + user.url + "', @fbPage='" + user.fbPage +
+                                                "', @TwName='" + user.twitterHandle + "', @PinName='" + user.PinterestHandle + "', @TumName='" + user.TumblrHandle + "'";
+
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -507,10 +675,14 @@ namespace ShopSenseDemo
             return user;
         }
 
-        public static Dictionary<string, List<Product>> GetClosetProducts(long userId, string db)
+        public static Dictionary<string, List<Product>> GetClosetProducts(long userId,  string db, long viewerId= 0)
         {
             Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
             string query = "EXEC [stp_SS_GetClosetProducts] @userId=" + userId;
+
+            if (viewerId != 0)
+                query += ",@viewerId=" + viewerId;
+
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -524,11 +696,14 @@ namespace ShopSenseDemo
                     do
                     {
                         string type = string.Empty;
+                        string total = string.Empty; ;
                         List<Product> closetItems = new List<Product>();
 
                         while (dr.Read())
                         {
                             type = dr["type"].ToString();
+                            total = dr["total"].ToString();
+                            type = type + "," + total;
                             closetItems.Add(Product.GetProductFromSqlDataReader(dr));
                         }
                         if (!string.IsNullOrEmpty(type))
@@ -550,10 +725,12 @@ namespace ShopSenseDemo
             return closetByCategories;
         }
 
-        public static Dictionary<string, List<Product>> GetClosetProductsByMetaCat(long userId,string metaCat,  string db, int offset = 1, int limit = 20)
+        public static Dictionary<string, List<Product>> GetClosetProductsByMetaCat(long userId,string metaCat,  string db, int offset = 1, int limit = 20, long viewerId = 0)
         {
             Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
             string query = "EXEC [stp_SS_GetClosetProductsByMetaCat] @userId=" + userId + ",@metaCat='" + metaCat + "',@offset=" + offset + ",@limit=" + limit;
+            if (viewerId != 0)
+                query += ",@viewerId=" + viewerId;
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -634,7 +811,7 @@ namespace ShopSenseDemo
                     while (dr.Read())
                     {
                         UserProfile user = new UserProfile();
-                        user.id = long.Parse(dr["Id"].ToString());
+                        user.userId = long.Parse(dr["Id"].ToString());
                         user.pic = dr["Pic"].ToString();
                         user.name = dr["Name"].ToString();
                         users.Add(user);
@@ -653,9 +830,9 @@ namespace ShopSenseDemo
         {
             bool isSuccess = false;
 
-            int heart = isSubscribe == true ? 1 : 0;
+            int subscribe = isSubscribe == true ? 1 : 0;
 
-            string query = "EXEC [stp_SS_Subscribe] @uid=" + userId + ", @sid=" + subscriberId + ",@subscribe=" + isSubscribe;
+            string query = "EXEC [stp_SS_Subscribe] @uid=" + userId + ", @sid=" + subscriberId + ",@subscribe=" + subscribe;
             SqlConnection myConnection = new SqlConnection(db);
 
             try
@@ -675,7 +852,381 @@ namespace ShopSenseDemo
             }
             return isSuccess;
         }
+
+        public static bool SubscribeTags(long userId, string tags, bool isSubscribe, string db)
+        {
+            bool isSuccess = false;
+
+            int subscribe = isSubscribe == true ? 1 : 0;
+
+            string query = "EXEC [stp_SS_SubscribeTags] @uid=" + userId + ", @tags=N'" + tags.Replace("'", "''") + "',@subscribe=" + subscribe;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
+
+        public static bool SubscribeFbUsers(long userId, string subscriberFbIds, bool isSubscribe, string db)
+        {
+            bool isSuccess = false;
+
+            int subscribe = isSubscribe == true ? 1 : 0;
+
+            string query = "EXEC [stp_SS_SubscribeFriends] @uid=" + userId + ", @friendids='" + subscriberFbIds + "',@subscribe=" + subscribe;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
+
         
+        public static Dictionary<string, List<object>> GetUserProfileInfo(long userId, string view, string db, int offset = 1, int limit = 20, long viewerId=0)
+        {
+            Dictionary<string, List<object>> profileInfo = new Dictionary<string, List<object>>();
+
+            string query = "EXEC [stp_SS_GetUserProfileInfo] @id=" + userId +", @view='" + view + "', @offset=" + offset + ",@limit=" + limit;
+
+            if (viewerId != 0)
+                query += ",@viewerId=" + viewerId;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    List<object> count = new List<object>();
+                    while (dr.Read())
+                    {
+                        int lookCount = int.Parse(dr["LookCount"].ToString());
+                        count.Add("looks," + lookCount);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        int garmentCount = int.Parse(dr["ItemCount"].ToString());
+                        count.Add("garments," + garmentCount);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        int likeCount = int.Parse(dr["LikeCount"].ToString());
+                        count.Add("hearts," + likeCount);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        int followerCount = int.Parse(dr["FollowerCount"].ToString());
+                        count.Add("follower," + followerCount);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        int followingCount = int.Parse(dr["FollowingCount"].ToString());
+                        count.Add("following," + followingCount);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        int isFollowing = int.Parse(dr["following"].ToString());
+                        count.Add("followstatus," + isFollowing);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        string followerPic = dr["LastFollowerPic"].ToString();
+                        count.Add("lastFollowerPic," + followerPic);
+                    }
+                    dr.NextResult();
+                    while (dr.Read())
+                    {
+                        string followingPic = dr["LastFollowingPic"].ToString();
+                        count.Add("lastFollowingPic," + followingPic);
+                    }
+
+                    dr.NextResult();
+                    profileInfo.Add("Counts", count);
+                    switch (view)
+                    {
+                        case "profile":
+                            List<object> users = new List<object>();
+                            profileInfo.Add("Users", users);
+                            while (dr.Read())
+                            {
+                                UserProfile updatedUser = GetUserFromSqlReader(dr);
+                                users.Add(updatedUser);
+                            }
+                            break;
+                        case "looks":
+                            List<object> looks = new List<object>();
+                            profileInfo.Add("Looks", looks);
+                            while (dr.Read())
+                            {
+                                string lookId = dr["Id"].ToString();
+                                string isLoved = dr["love"].ToString();
+                                looks.Add(lookId + "," + isLoved);
+                            }
+                            break;
+                        case "hearts":
+                            List<object> hearts = new List<object>();
+                            profileInfo.Add("Hearts", hearts);
+                            while (dr.Read())
+                            {
+                                string lookId = dr["Id"].ToString();
+                                string isLoved = dr["love"].ToString();
+                                hearts.Add(lookId + "," +  isLoved);
+                            }
+                            break;
+                        case "items":
+                            do
+                            {
+                                string type = string.Empty;
+                                string total = string.Empty; ;
+                                List<object> closetItems = new List<object>();
+
+                                while (dr.Read())
+                                {
+                                    type = dr["type"].ToString();
+                                    total = dr["total"].ToString();
+                                    type = type + "," + total;
+                                    closetItems.Add(Product.GetProductFromSqlDataReader(dr));
+                                }
+                                if (!string.IsNullOrEmpty(type))
+                                {
+                                    if (!profileInfo.ContainsKey(type))
+                                        profileInfo.Add(type, closetItems);
+                                    else
+                                        profileInfo[type] = closetItems;
+                                }
+
+                            } while (dr.NextResult());
+                   
+                            break;
+                        case "followers":
+                            List<object> followers = new List<object>();
+                            profileInfo.Add("followers", followers);
+                            while (dr.Read())
+                            {
+                                UserProfile user = UserProfile.GetUserFromSqlReader(dr);
+                                followers.Add(user);
+                            }
+                            break;
+                        case "following":
+                            List<object> followingUsers = new List<object>();
+                            profileInfo.Add("followingUsers", followingUsers);
+                            while (dr.Read())
+                            {
+                                UserProfile user = UserProfile.GetUserFromSqlReader(dr);
+                                followingUsers.Add(user);
+                            }
+
+                            dr.NextResult();
+                            List<object> followingTags = new List<object>();
+                            profileInfo.Add("followingTags", followingTags);
+                            while (dr.Read())
+                            {
+                                Tag tag = Tag.GetTagFromSqlReader(dr);
+                                followingTags.Add(tag);
+                            }
+                            break;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return profileInfo;
+        }
+
+        public static bool IsEmailUnique(string emailId, string db)
+        {
+            bool isEmailUnique = true;
+
+            string query = "EXEC [stp_SS_IsEmailUnique] @email='" + emailId + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        isEmailUnique = false;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return isEmailUnique;
+        }
+        
+        public static bool IsUserNameUnique(string userName, string db)
+        {
+            bool isUserNameUnique = true;
+
+            string query = "EXEC [stp_SS_IsUserNameUnique] @userName='" + userName + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        isUserNameUnique = false;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return isUserNameUnique;
+        }
+
+        public static bool ChangePassword(string userName, string oldPassword, string newPassword, string db)
+        {
+            bool isSuccessful = false;
+
+            string query = "EXEC [stp_SS_ChangePassword] @userName='" + userName + "', @oldPassword=N'" + oldPassword + "', @newPassword=N'" + newPassword + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        isSuccessful = true;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return isSuccessful;
+        }
+
+        /*public static bool UpdatePassword(long userId,string newPassword, string db)
+        {
+            bool isSuccessful = false;
+
+            string query = "EXEC [stp_SS_ForgotPassword] @id=" + userId + ", @newPassword=N'" + newPassword + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        isSuccessful = true;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return isSuccessful;
+        }*/
+        public static bool ForgotPassword(string emailId, string db)
+        {
+            bool isSuccessful = false;
+
+            //new password
+            string  newPassword = Guid.NewGuid().ToString().Substring(0,8);
+
+            string query = "EXEC [stp_SS_ForgotPassword] @emailId='" + emailId + "', @newPassword=N'" + newPassword + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        isSuccessful = true;
+
+                        //TODO : Send an email with the new password to log in
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return isSuccessful;
+        }
+
+
     }
 }
     

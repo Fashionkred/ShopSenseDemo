@@ -4,9 +4,36 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
 using System.Data.SqlClient;
+using System.Data;
 
 namespace ShopSenseDemo
 {
+    public sealed class TagType
+    {
+
+        public readonly String name;
+        private readonly int value;
+
+        public static readonly TagType ENTERTAINMENT = new TagType(1, "ENTERTAINMENT");
+        public static readonly TagType STYLETRENDS = new TagType(2, "STYLE TRENDS");
+        public static readonly TagType PEOPLENEWSEVENTS = new TagType(3, "PEOPLE, NEWS & EVENTS");
+        public static readonly TagType DESIGNERS = new TagType(4, "DESIGNERS");
+
+        private TagType(int value, String name)
+        {
+            this.name = name;
+            this.value = value;
+        }
+
+        public override String ToString()
+        {
+            return name;
+        }
+
+        
+
+    }
+
     [DataContract]
     public class Tag
     {
@@ -20,8 +47,66 @@ namespace ShopSenseDemo
         public string imageUrl { get; set; }
 
         [DataMember]
+        public string BigBannerUrl { get; set; }
+
+        [DataMember]
+        public string SwatchUrl { get; set; }
+
+        [DataMember]
         public string prettyName { get; set; }
 
+        public int IsFollowing { get; set; }
+
+        public TagType type { get; set; }
+
+
+        public static bool ColumnExists(IDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i) == columnName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static Tag GetTagFromSqlReader(SqlDataReader dr)
+        {
+            Tag tag = new Tag();
+
+            tag.id = long.Parse(dr["Id"].ToString());
+            tag.name = dr["Name"].ToString().Replace("''", "'");
+            tag.imageUrl = dr["ImageUrl"].ToString();
+            tag.prettyName = dr["PrettyName"].ToString();
+            tag.BigBannerUrl = dr["BigBannerUrl"].ToString();
+            tag.SwatchUrl = dr["SwatchUrl"].ToString();
+            if (!string.IsNullOrEmpty(dr["Type"].ToString()))
+            {
+                int type = int.Parse(dr["Type"].ToString());
+                switch (type)
+                {
+                    case 1: tag.type = TagType.ENTERTAINMENT;
+                        break;
+                    case 2: tag.type = TagType.STYLETRENDS;
+                        break;
+                    case 3: tag.type = TagType.PEOPLENEWSEVENTS;
+                        break;
+                    case 4: tag.type = TagType.DESIGNERS;
+                        break;
+                }
+
+            }
+
+            
+            if (ColumnExists(dr, "following") && !string.IsNullOrEmpty(dr["following"].ToString()))
+            {
+                tag.IsFollowing = int.Parse(dr["following"].ToString());
+            }
+            return tag;
+        }
 
         public static List<Tag> GetTagsFromSqlReader(SqlDataReader dr)
         {
@@ -29,12 +114,7 @@ namespace ShopSenseDemo
 
             while (dr.Read())
             {
-                Tag tag = new Tag();
-
-                tag.id = long.Parse(dr["Id"].ToString());
-                tag.name = dr["Name"].ToString();
-                tag.imageUrl = dr["ImageUrl"].ToString();
-                tag.prettyName = dr["PrettyName"].ToString();
+                Tag tag = Tag.GetTagFromSqlReader(dr);
                 tags.Add(tag);
             }
 
@@ -84,49 +164,56 @@ namespace ShopSenseDemo
                     SqlCommand cmd = adp.SelectCommand;
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
-
+                   
                     //Get popular looks
                     List<Look> popularLooks = new List<Look>();
 
-                    int counter = 0;
+                    int counter = 0; int countLooks = 0;
+                    while (dr.Read())
+                    {
+                        countLooks = int.Parse(dr["total"].ToString());
+                    }
+                    dr.NextResult();
                     do
                     {
                         Look look = Look.GetLookFromSqlReader(dr);
                         popularLooks.Add(look);
                         counter++;
-                        if (counter >= noOfLooks)
+                        if (counter >= noOfLooks || counter >= countLooks)
                             break;
                     } while (dr.NextResult());
                     metaInfo.Add("Popular Looks", popularLooks);
 
-                    //Get fresh looks
+                    /*Get fresh looks
                     List<Look> recentLooks = new List<Look>();
                     dr.NextResult();
-                    counter = 0;
+                    counter = 0; countLooks = 0;
+                    while (dr.Read())
+                    {
+                        countLooks = int.Parse(dr["total"].ToString());
+                    }
+                    dr.NextResult();
                     do
                     {
                         Look look = Look.GetLookFromSqlReader(dr);
                         recentLooks.Add(look);
                         counter++;
-                        if (counter >= noOfLooks)
+                        if (counter >= noOfLooks || counter >= countLooks)
                             break;
                     } while (dr.NextResult());
-                    metaInfo.Add("Recent Looks", recentLooks);
+                    metaInfo.Add("Recent Looks", recentLooks);*/
 
                     //Get top stylists
                     List<UserProfile> stylists = new List<UserProfile>();
                     dr.NextResult();
                     while (dr.Read())
                     {
-                        UserProfile user = new UserProfile();
-                        user.id = long.Parse(dr["Id"].ToString());
-                        user.pic = dr["Pic"].ToString();
-                        user.name = dr["Name"].ToString();
+                        UserProfile user = UserProfile.GetUserFromSqlReader(dr);
                         stylists.Add(user);
                     }
                     metaInfo.Add("Top Stylists", stylists);
 
-                    //Get top products
+                    /*Get top products
                     List<Product> topItems = new List<Product>();
                     dr.NextResult();
 
@@ -134,7 +221,15 @@ namespace ShopSenseDemo
                     {
                         topItems.Add(Product.GetProductFromSqlDataReader(dr));
                     }
-                    metaInfo.Add("Top Items", topItems);
+                    metaInfo.Add("Top Items", topItems);*/
+
+                    dr.NextResult();
+                    Tag tag = new Tag();
+                    while (dr.Read())
+                    {
+                        tag = Tag.GetTagFromSqlReader(dr);
+                    }
+                    metaInfo.Add("Tag", tag);
                 }
             }
             finally

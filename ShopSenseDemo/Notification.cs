@@ -37,7 +37,7 @@ namespace ShopSenseDemo
             try
             {
                 myConnection.Open();
-                string query = "EXEC [stp_SS_GetLastNotifications] @userId=" +  user.id;
+                string query = "EXEC [stp_SS_GetLastNotifications] @userId=" +  user.userId;
                 using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
                 {
                     SqlCommand cmd = adp.SelectCommand;
@@ -50,7 +50,7 @@ namespace ShopSenseDemo
                         notification.User = user;
 
                         notification.Subject = new UserProfile();
-                        notification.Subject.id = long.Parse(dr["SubjectId"].ToString());
+                        notification.Subject.userId = long.Parse(dr["SubjectId"].ToString());
                         notification.Subject.pic = dr["Pic"].ToString();
                         notification.Subject.name = dr["Name"].ToString();
 
@@ -78,7 +78,7 @@ namespace ShopSenseDemo
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
-                string query = "EXEC [stp_SS_SaveNotification] @userId=" + notification.User.id + ",@subjectId=" + notification.Subject.id +
+                string query = "EXEC [stp_SS_SaveNotification] @userId=" + notification.User.userId + ",@subjectId=" + notification.Subject.userId +
                                 ", @type=" + (int)notification.Type;
                 if (notification.Look != null)
                 {

@@ -52,6 +52,18 @@ namespace ShopSenseDemo
         [DataMember]
         public int shareCount { get; set; }
 
+        [DataMember]
+        public int commentCount { get; set; }
+
+        [DataMember]
+        public List<UserProfile> Likers { get; set; }
+
+        [DataMember]
+        public List<UserProfile> ReStylers { get; set; }
+
+        [DataMember]
+        public List<Comment> comments { get; set; }
+
         //TODO: Deprecate contest id and name
         public int contestId { get; set; }
         
@@ -74,6 +86,9 @@ namespace ShopSenseDemo
         {
             Look look = new Look();
             look.products = new List<Product>();
+            look.Likers = new List<UserProfile>();
+            look.ReStylers = new List<UserProfile>();
+            look.comments = new List<Comment>();
             look.tags = new List<Tag>();
             
             while (dr.Read())
@@ -89,10 +104,39 @@ namespace ShopSenseDemo
 
             while (dr.Read())
             {
-                if (dr != null && (int)dr[0] != 0)
+                if (dr != null)
                 {
                      look.isReStyled = true;
                 }
+            }
+            dr.NextResult();
+
+            //top likers
+            while (dr.Read())
+            {
+                UserProfile liker = UserProfile.GetUserFromSqlReader(dr);
+                look.Likers.Add(liker);
+            }
+
+            dr.NextResult();
+
+            //top restylers
+            while (dr.Read())
+            {
+                UserProfile reStyler = UserProfile.GetUserFromSqlReader(dr);
+                look.ReStylers.Add(reStyler);
+            }
+            dr.NextResult();
+
+            while (dr.Read())
+            {
+                Comment comment = new Comment();
+                comment.id = long.Parse(dr["CommentId"].ToString());
+                comment.commenter = UserProfile.GetUserFromSqlReader(dr);
+                comment.commentText = dr["CommentText"].ToString().Replace("''", "'");
+                DateTime commentTime = DateTime.Parse(dr["CommentCreateTime"].ToString());
+                comment.commentTime = (commentTime - new DateTime(1970, 1, 1).ToLocalTime()).TotalSeconds;
+                look.comments.Add(comment);
             }
             dr.NextResult();
 
@@ -101,10 +145,11 @@ namespace ShopSenseDemo
                 look.id = int.Parse(dr["Id"].ToString());
                 look.upVote = int.Parse(dr["UpVote"].ToString());
                 look.downVote = int.Parse(dr["DownVote"].ToString());
-                look.title = dr["Title"].ToString();
+                look.title = dr["Title"].ToString().Replace("''", "'");
                 look.restyleCount = int.Parse(dr["ReStyleCount"].ToString());
                 look.viewCount = int.Parse(dr["ViewCount"].ToString());
                 look.shareCount = int.Parse(dr["ShareCount"].ToString());
+                look.commentCount = int.Parse(dr["CommentCount"].ToString());
 
                 if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {
@@ -153,6 +198,36 @@ namespace ShopSenseDemo
 
             return look;
         }
+
+        public static List<Look> GetHomePageLooks(string db, long uId, int offset = 1, int limit = 10)
+        {
+            List<Look> looks = new List<Look>();
+            string query;
+            query = "EXEC [stp_SS_GetHomePageLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return looks;
+        }
+
         public static List<Look> GetHPLooks(string db, long uId, int offset=1, int limit=15, bool isPopular = false)
         {
             List<Look> looks = new List<Look>();
@@ -214,7 +289,12 @@ namespace ShopSenseDemo
                     SqlCommand cmd = adp.SelectCommand;
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
-
+                    int countLooks = 0;
+                    while (dr.Read())
+                    {
+                        countLooks = int.Parse(dr["total"].ToString());
+                    }
+                    dr.NextResult();
                     looks = Look.GetLooksFromSqlReader(dr);
                 }
             }
@@ -253,7 +333,7 @@ namespace ShopSenseDemo
         {
             Look look = new Look();
 
-            string query = "EXEC [stp_SS_SaveLook] @product='" + productMap + "', @uid=" + userId + ",@tag='" + tagMap + "', @title=N'" + title + "'";
+            string query = "EXEC [stp_SS_SaveLook] @product='" + productMap + "', @uid=" + userId + ",@tag='" + tagMap.Replace("'", "''") + "', @title=N'" + title.Replace("'", "''") + "'";
             if (originalLookId!= 0)
             {
                 query += (", @originalLook=" + originalLookId);
@@ -413,6 +493,99 @@ namespace ShopSenseDemo
                 myConnection.Close();
             }
             return isSuccess;
+        }
+
+        //get list of likers
+        public static List<UserProfile> GetLikers(string db,long lookId, int offset = 1, int limit = 20)
+        {
+            List<UserProfile> likers = new List<UserProfile>();
+
+            string query = "EXEC [stp_SS_GetLikers] @lookId=" + lookId + ",@offset=" + offset + ",@limit=" + limit;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        UserProfile liker = UserProfile.GetUserFromSqlReader(dr);
+                        likers.Add(liker);
+                    }
+
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return likers;
+        }
+
+        //get list of likers
+        public static List<LightUser> GetLikersandRestylers(string db, long lookId, int offset = 1, int limit = 20)
+        {
+            List<LightUser> users = new List<LightUser>();
+
+            string query = "EXEC [stp_SS_GetLikers&Restylers] @lookId=" + lookId + ",@offset=" + offset + ",@limit=" + limit;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        LightUser user = LightUser.GetUserFromSqlReader(dr);
+                        users.Add(user);
+                    }
+
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return users;
+        }
+
+        //get list of reStylers
+        public static List<UserProfile> GetReStylers(string db, long lookId, int offset = 1, int limit = 20)
+        {
+            List<UserProfile> reStylers = new List<UserProfile>();
+
+            string query = "EXEC [stp_SS_GetReStylers] @lookId=" + lookId + ",@offset=" + offset + ",@limit=" + limit;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        UserProfile reStyler = UserProfile.GetUserFromSqlReader(dr);
+                        reStylers.Add(reStyler);
+                    }
+
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return reStylers;
         }
     }
 }

@@ -1,28 +1,10 @@
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe.config
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.pdb
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.dll
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.pdb
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.xml
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.exe
-C:\Users\nirveek\Documents\Visual Studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe.config
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.xml
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.csprojResolveAssemblyReference.cache
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.exe
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.pdb
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.dll
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe.config
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.pdb
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.dll
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.pdb
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.xml
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.csprojResolveAssemblyReference.cache
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.exe
-E:\Projects\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.pdb
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe.config
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.pdb
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.dll
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.pdb
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.xml
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.csprojResolveAssemblyReference.cache
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.exe
-D:\All Projects\Fashion Website\Fasion code\Fashion\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.pdb

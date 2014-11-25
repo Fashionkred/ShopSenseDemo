@@ -34,10 +34,11 @@ namespace ShopSenseDemo
         public static string SSCategoryUrl = "http://api.shopstyle.com/api/v2/categories?pid=uid5264-8690292-48";
         public static string SSProductv2Url = "http://api.shopstyle.com/api/v2/products?pid=uid5264-8690292-48&cat={0}&limit=1&fl=r1";
 
-        public static string SSProductQueryUrl = "http://api.shopstyle.com/action/apiSearch?pid=uid5264-8690292-48&format=json&cat={0}&count=1";
+        public static string SSProductQueryUrl = "http://api.shopstyle.com/action/apiSearch?pid=uid5264-8690292-48&format=json&cat={0}&count=100&fl={1}&fl={2}";
 
         //public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
-        public static string connectionString = "server=localhost;Database=Fashionkred;Integrated Security=True;";
+        //public static string connectionString = "server=localhost;Database=Fashionkred;Integrated Security=True;";
+        public static string connectionString ="Data Source=54.187.150.46;Initial Catalog=Fashionkred;Persist Security Info=True;User ID=admin;Password=Fk711101";
 
         public static string ExecuteGetCommand(string url, string userName, string password)
         {
@@ -143,12 +144,13 @@ namespace ShopSenseDemo
 
         public static void GetProducts(string category, string filter, string colorfilter)
         {
-            string products = ExecuteGetCommand(string.Format(SSProductQueryUrl, category, filter, colorfilter), string.Empty, string.Empty);
+            string url = string.Format(SSProductQueryUrl, category, filter, colorfilter);
+            string products = ExecuteGetCommand(url, string.Empty, string.Empty);
 
             using (Stream s = GenerateStreamFromString(products))
             {
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(Products));
-
+                s.Position = 0;
                 Products SSProducts = (Products)ser.ReadObject(s);
 
                 SSProducts.SaveProducts(connectionString);
@@ -229,26 +231,42 @@ namespace ShopSenseDemo
                 CanonicalColors.Red, CanonicalColors.Silver, CanonicalColors.White, CanonicalColors.Yellow
             };
 
-            List<string> Retailers = new List<string> { "r1", "r2", "r6", "r7", "r8", "r9", "r374" };
+            //List<string> Retailers = new List<string> { "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10" };
+            //List<string> Retailers = new List<string> { "r21", "r27", "r105", "r108" };
+            List<string> Retailers = new List<string> { "r1426", "r306", "r31", "r720", "r483", "r1674" };
 
-            //foreach (string r in Retailers)
-            //{
-            //    Console.WriteLine("Retailer: " + r);
+            Dictionary<Category, List<Category>> catTree = Category.GetMetaCategories(connectionString);
+            foreach(KeyValuePair<Category, List<Category>> metaCat in catTree)
+            {
+                foreach (Category cat in metaCat.Value)
+                {
+                    //if (cat.id == "bridal-dresses")
+                    //    continue;
 
-            //    GetProducts("flats", r, r);
-            //}
+                    foreach (CanonicalColors c in colors)
+                    {
+                        foreach (string retailer in Retailers)
+                        {
+                            Console.WriteLine("Cat:" + cat.name+ "Color: " + c + "Retailer: "+ retailer );
 
-            CategoryTree catTree = new CategoryTree();
-            catTree.LoadCategoryTree(connectionString);
+                            string colorfilter = "c" + c.GetHashCode();
+                            GetProducts(cat.id, retailer, colorfilter);
+                        }
+                    }
+                }
+            }
 
-            Console.WriteLine(catTree.flattenCatTree(catTree.handbagCats, "HandBag"));
-            Console.WriteLine(catTree.flattenCatTree(catTree.clothingCats, "Clothing"));
-            Console.WriteLine(catTree.flattenCatTree(catTree.beautyCats, "Beauty"));
-            Console.WriteLine(catTree.flattenCatTree(catTree.shoeCats, "Shoe"));
+            //CategoryTree catTree = new CategoryTree();
+            //catTree.LoadCategoryTree(connectionString);
+
+            //Console.WriteLine(catTree.flattenCatTree(catTree.handbagCats, "HandBag"));
+            //Console.WriteLine(catTree.flattenCatTree(catTree.clothingCats, "Clothing"));
+            //Console.WriteLine(catTree.flattenCatTree(catTree.beautyCats, "Beauty"));
+            //Console.WriteLine(catTree.flattenCatTree(catTree.shoeCats, "Shoe"));
 
             //UserProfile.GetClosetProducts(5, connectionString);
             //Product.GetPopularProductsByFilters(5, connectionString);
-            Product.GetSimilarProducts("Dresses", "", 348981075, 4, connectionString);
+            //Product.GetSimilarProducts("Dresses", "", 348981075, 4, connectionString);
             /*foreach (CanonicalColors c in colors)
             {
                 //Get the color code
