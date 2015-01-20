@@ -316,7 +316,11 @@ namespace ShopSenseDemo
                                                 ", @email=N'" + user.emailId + "', @location=N'" + user.location.Replace("'", "\"") +
                                   "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'" +
                                   ",@flags=" + (int)user.userFlags + ",@token='" + user.accessToken + "'" + ",@referral=N'" + user.Referral + "'" +
-                                  ", @password=N'" + user.password + "', @userName=N'" + user.userName + "'";
+                                  ", @password=N'" + user.password + "'";
+            if (!string.IsNullOrEmpty(user.userName))
+            {
+                query += ", @userName=N'" + user.userName + "'";
+            }
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -583,7 +587,7 @@ namespace ShopSenseDemo
         /// <returns></returns>
         public static bool IsFriend(long userId1, long userId2)
         {
-            bool isFriend = true;
+            bool isFriend = false;
 
             //userId2 is friend of userId1 if userId2 belongs in userId1's following table
 
@@ -1191,12 +1195,14 @@ namespace ShopSenseDemo
 
             return isSuccessful;
         }*/
-        public static bool ForgotPassword(string emailId, string db)
+        public static bool ForgotPassword(string emailId, string db,out string userName, out string newPwd)
         {
             bool isSuccessful = false;
 
             //new password
             string  newPassword = Guid.NewGuid().ToString().Substring(0,8);
+            newPwd = newPassword;
+            userName = string.Empty;
 
             string query = "EXEC [stp_SS_ForgotPassword] @emailId='" + emailId + "', @newPassword=N'" + newPassword + "'";
             SqlConnection myConnection = new SqlConnection(db);
@@ -1213,8 +1219,7 @@ namespace ShopSenseDemo
                     while (dr.Read())
                     {
                         isSuccessful = true;
-
-                        //TODO : Send an email with the new password to log in
+                        userName = dr["UserName"].ToString();
                     }
                 }
             }
@@ -1224,6 +1229,31 @@ namespace ShopSenseDemo
             }
 
             return isSuccessful;
+        }
+
+        public static bool SaveDeviceToken(long userId, string deviceId, string token, string db)
+        {
+            bool isSuccess = false;
+
+            string query = "EXEC [stp_SS_SaveNotificationDeviceInfo] @userid=" + userId + ", @deviceId='" + deviceId + "',@token='" + token + "'";
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
         }
 
 

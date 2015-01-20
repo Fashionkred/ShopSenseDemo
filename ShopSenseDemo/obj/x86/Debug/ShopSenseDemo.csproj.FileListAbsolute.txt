@@ -1,5 +1,6 @@
-C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.pdb
-C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.pdb
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll.config
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\bin\Debug\ShopSenseDemo.pdb
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\ShopSenseDemo\obj\x86\Debug\ShopSenseDemo.csprojResolveAssemblyReference.cache

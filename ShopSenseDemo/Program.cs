@@ -38,7 +38,7 @@ namespace ShopSenseDemo
 
         //public static string connectionString = "Data Source=mssql2008.reliablesite.net,14333,14333;Initial Catalog=facebook;Persist Security Info=True;User ID=nirveek_de;Password=Fashionkred123";
         //public static string connectionString = "server=localhost;Database=Fashionkred;Integrated Security=True;";
-        public static string connectionString ="Data Source=54.187.150.46;Initial Catalog=Fashionkred;Persist Security Info=True;User ID=admin;Password=Fk711101";
+        public static string connectionString ="Data Source=startcult.com;Initial Catalog=Fashionkred;Persist Security Info=True;User ID=admin;Password=Fk711101";
 
         public static string ExecuteGetCommand(string url, string userName, string password)
         {
@@ -219,7 +219,7 @@ namespace ShopSenseDemo
             //save affilaitelink
         }
 
-        public static void Main(string[] args)
+       public static void Main(string[] args)
         {
             //StoreRetailers();
             //StoreBrands();
@@ -231,9 +231,9 @@ namespace ShopSenseDemo
                 CanonicalColors.Red, CanonicalColors.Silver, CanonicalColors.White, CanonicalColors.Yellow
             };
 
-            //List<string> Retailers = new List<string> { "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10" };
-            //List<string> Retailers = new List<string> { "r21", "r27", "r105", "r108" };
-            List<string> Retailers = new List<string> { "r1426", "r306", "r31", "r720", "r483", "r1674" };
+            //List<string> Retailers = new List<string> { "r1", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10" };
+            List<string> Retailers = new List<string> { "r21", "r27", "r105", "r1426", "r483", "r760", "r36" , "r29", "r54", "r76", "r1060", "r717"};
+            //List<string> Retailers = new List<string> { "r1426", "r483", "r1674" };
 
             Dictionary<Category, List<Category>> catTree = Category.GetMetaCategories(connectionString);
             foreach(KeyValuePair<Category, List<Category>> metaCat in catTree)
@@ -327,6 +327,7 @@ namespace ShopSenseDemo
             //l = Look.GetRandomLook("evening-dresses", "evening-shoes", 2, connectionString);
             //l = Look.GetLookById(1, connectionString);*/
         }
+    
 
     }
 }

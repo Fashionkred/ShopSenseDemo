@@ -303,6 +303,9 @@ namespace ShopSenseDemo
                 myConnection.Close();
             }
 
+            if (looks.Count == 0)
+                looks = null;
+
             return looks;
         }
 
@@ -329,7 +332,7 @@ namespace ShopSenseDemo
             return isSuccess;
         }
 
-        public static Look SaveLook(string db, string productMap, long userId, string tagMap, string title, long originalLookId = 0, long editLookId = 0)
+        public static Look SaveLook(string db, string productMap, long userId, string tagMap, string title, long originalLookId = 0, long editLookId = 0, bool isFeaturedStylist = false)
         {
             Look look = new Look();
 
@@ -342,6 +345,10 @@ namespace ShopSenseDemo
             if (editLookId!= 0)
             {
                 query += (", @editLookId=" + editLookId);
+            }
+            if (isFeaturedStylist)
+            {
+                query += (", @isFeaturedStylist=" + 1);
             }
             SqlConnection myConnection = new SqlConnection(db);
 

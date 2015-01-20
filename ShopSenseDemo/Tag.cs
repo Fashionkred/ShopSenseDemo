@@ -59,6 +59,8 @@ namespace ShopSenseDemo
 
         public TagType type { get; set; }
 
+        public bool IsEditorial { get; set; }
+
 
         public static bool ColumnExists(IDataReader reader, string columnName)
         {
@@ -105,6 +107,19 @@ namespace ShopSenseDemo
             {
                 tag.IsFollowing = int.Parse(dr["following"].ToString());
             }
+            if (ColumnExists(dr, "Editorial") && !string.IsNullOrEmpty(dr["Editorial"].ToString()))
+            {
+                tag.IsEditorial = bool.Parse(dr["Editorial"].ToString());
+            }
+
+
+            //if imageurl and bannerurl are empty - then default to amazon S3 url
+            if (string.IsNullOrEmpty(tag.imageUrl) && tag.IsEditorial)
+                tag.imageUrl = "https://s3-us-west-2.amazonaws.com/fkcontentpics/" + tag.name + "_small.png";
+
+            if (string.IsNullOrEmpty(tag.BigBannerUrl) && tag.IsEditorial)
+                tag.BigBannerUrl = "https://s3-us-west-2.amazonaws.com/fkcontentpics/" + tag.name + "_big.png";
+
             return tag;
         }
 
@@ -146,6 +161,47 @@ namespace ShopSenseDemo
             }
 
             return popularTags;
+        }
+
+        public static Dictionary<TagType, List<Tag>> getFeaturedHashtags(long userId, string db)
+        {
+            Dictionary<TagType, List<Tag>> featuredTags = new Dictionary<TagType, List<Tag>>();
+
+            string query = "EXEC [stp_SS_GetFeaturedTags] @userId=" + userId;
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        Tag tag = Tag.GetTagFromSqlReader(dr);
+                        if (!featuredTags.ContainsKey(tag.type))
+                        {
+                            List<Tag> tags = new List<Tag>();
+                            tags.Add(tag);
+                            featuredTags.Add(tag.type, tags);
+                        }
+                        else
+                        {
+                            featuredTags[tag.type].Add(tag);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return featuredTags;
         }
 
         public static Dictionary<string, object> GetTagMetaInfo(long userId, long tagId, int noOfLooks, int noOfItems, int noOfStylists, string db)

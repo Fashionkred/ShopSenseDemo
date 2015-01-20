@@ -245,7 +245,7 @@ namespace ShopSenseDemo
             p.categoryNames = new List<string>();
             p.colors = new List<Color>();
             Image img = new Image();
-            img.url = GetBestImageUrl(dr["ImageUrl"].ToString());
+            img.url = p.GetBestImageUrl(dr["ImageUrl"].ToString());
             p.images.Add(img);
             p.url = dr["Url"].ToString();
             p.price = (Decimal)dr["Price"];
@@ -347,8 +347,8 @@ namespace ShopSenseDemo
             }
 
             //Trim product name out of brand name   case insensitive
-            if (p.name.ToLower().Contains(p.brandName.ToLower()))
-                p.name = p.name.Substring(p.brandName.Length + 1);
+            if (!string.IsNullOrEmpty(p.brandName) &&  p.name.ToLower().IndexOf(p.brandName.ToLower()) == 0)
+                p.name = p.name.Substring(p.brandName.Length).TrimStart();
 
             return p;
         }
@@ -379,12 +379,13 @@ namespace ShopSenseDemo
                 return colors[0].name;
             else return null;
         }
-        public static string GetBestImageUrl(string imageUrl)
+        public string GetBestImageUrl(string imageUrl)
         {
             string thumbnail = imageUrl.Replace("xim", "pim");
             thumbnail = thumbnail.Replace("resources", "bim");
             
-            thumbnail = thumbnail.Replace(".jpg", "_best.jpg");
+            if(!thumbnail.Contains("_"))
+                thumbnail = thumbnail.Replace(".jpg", "_best.jpg");
 
             return thumbnail;
         }
@@ -435,7 +436,8 @@ namespace ShopSenseDemo
         public string GetThumbnailUrl()
         {
             string thumbnail = this.images[0].url.Replace("xim","pim");
-            thumbnail = thumbnail.Replace(".jpg", "_medium.jpg");
+            if(!thumbnail.Contains("_"))
+                thumbnail = thumbnail.Replace(".jpg", "_medium.jpg");
 
             return thumbnail;
         }
@@ -761,6 +763,35 @@ namespace ShopSenseDemo
             }
             return isSuccess;
         }
+
+        public static bool ReportItem(long userId, long productId, string db)
+        {
+            bool isSuccess = false;
+
+            string query = "EXEC [stp_SS_SaveReportedProduct] @pId=" + productId + ", @uId=" + userId;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            Product p = new Product();
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    isSuccess = true;
+
+                }
+
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
     }
 
     [DataContract]
@@ -803,9 +834,12 @@ namespace ShopSenseDemo
                             if (color.images != null)
                             {
                                 imageUrl = color.images[3].url.Replace("'", "\"");
-                                if(p.GetImageUrl() == p.images[3].url)
+                                if (p.GetImageUrl() == p.images[3].url)
                                     defaultColorId = color.canonical[0];
                             }
+                            else if (p.colors.Count == 1)
+                                defaultColorId = color.canonical[0];
+
                             colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" cname=\"" + color.name.Replace("'", "''") +
                                "\" surl=\"" + color.swatchUrl + "\" />";
                         }
