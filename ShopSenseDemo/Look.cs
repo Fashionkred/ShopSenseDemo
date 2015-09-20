@@ -42,6 +42,15 @@ namespace ShopSenseDemo
 
         [DataMember]
         public bool isLoved { get; set; }
+
+        [DataMember]
+        public bool isOOTD { get; set; }
+
+        [DataMember]
+        public string OOTDdate { get; set; }
+
+        [DataMember]
+        public string featuredTag { get; set; }
         
         [DataMember]
         public bool isReStyled { get; set; }
@@ -63,6 +72,10 @@ namespace ShopSenseDemo
 
         [DataMember]
         public List<Comment> comments { get; set; }
+
+        [DataMember]
+        public double updateTime { get; set; }
+
 
         //TODO: Deprecate contest id and name
         public int contestId { get; set; }
@@ -135,7 +148,7 @@ namespace ShopSenseDemo
                 comment.commenter = UserProfile.GetUserFromSqlReader(dr);
                 comment.commentText = dr["CommentText"].ToString().Replace("''", "'");
                 DateTime commentTime = DateTime.Parse(dr["CommentCreateTime"].ToString());
-                comment.commentTime = (commentTime - new DateTime(1970, 1, 1).ToLocalTime()).TotalSeconds;
+                comment.commentTime = (commentTime - new DateTime(1970, 1, 1)).TotalSeconds;
                 look.comments.Add(comment);
             }
             dr.NextResult();
@@ -150,7 +163,12 @@ namespace ShopSenseDemo
                 look.viewCount = int.Parse(dr["ViewCount"].ToString());
                 look.shareCount = int.Parse(dr["ShareCount"].ToString());
                 look.commentCount = int.Parse(dr["CommentCount"].ToString());
-
+                if(!string.IsNullOrEmpty(dr["UpdateDate"].ToString()))
+                {
+                    DateTime updateTime = DateTime.Parse(dr["UpdateDate"].ToString());
+                    look.updateTime = (updateTime - new DateTime(1970, 1, 1)).TotalSeconds;
+                
+                }
                 if (!string.IsNullOrEmpty(dr["OriginalLook"].ToString()))
                 {
                     look.originalLookId = int.Parse(dr["OriginalLook"].ToString());
@@ -159,6 +177,21 @@ namespace ShopSenseDemo
                 if (!string.IsNullOrEmpty(dr["contestId"].ToString()))
                 {
                     look.contestId = int.Parse(dr["contestId"].ToString());
+                }
+                if (!string.IsNullOrEmpty(dr["OOTD"].ToString()))
+                {
+                    int isOOTD = int.Parse(dr["OOTD"].ToString());
+                    look.isOOTD = isOOTD == 1 ? true : false;
+                }
+                if (!string.IsNullOrEmpty(dr["OOTDdate"].ToString()))
+                {
+                    DateTime date = DateTime.Parse(dr["OOTDdate"].ToString());
+                    date = date.ToLocalTime();
+                    look.OOTDdate = date.ToString("MMM dd");
+                }
+                if (!string.IsNullOrEmpty(dr["TagDetails"].ToString()))
+                {
+                    look.featuredTag = dr["TagDetails"].ToString();
                 }
             }
 
@@ -199,11 +232,14 @@ namespace ShopSenseDemo
             return look;
         }
 
-        public static List<Look> GetHomePageLooks(string db, long uId, int offset = 1, int limit = 10)
+        public static List<Look> GetHomePageLooks(string db, long uId, int offset = 1, int limit = 10, bool isFilter = true)
         {
             List<Look> looks = new List<Look>();
             string query;
-            query = "EXEC [stp_SS_GetHomePageLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            if(isFilter)
+                query = "EXEC [stp_SS_GetHomePageLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+            else
+                query = "EXEC [stp_SS_GetHomePageLooks_NoFilter] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
             
 
             SqlConnection myConnection = new SqlConnection(db);
@@ -241,6 +277,33 @@ namespace ShopSenseDemo
             {
                 query = "EXEC [stp_SS_GetFollowedLooks] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
             }
+
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    looks = Look.GetLooksFromSqlReader(dr);
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return looks;
+        }
+
+        public static List<Look> GetPopularLooksOfWeek(string db, long uId, int offset = 1, int limit = 15)
+        {
+            List<Look> looks = new List<Look>();
+            string query = "EXEC [stp_SS_GetPopularLooksOfWeek] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
 
             SqlConnection myConnection = new SqlConnection(db);
 

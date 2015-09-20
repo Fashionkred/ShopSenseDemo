@@ -19,7 +19,8 @@ namespace ShopSenseDemo
         PrivateSharing = 0x01,
         UnSubsrcibe = 0x02,
         Stylist = 0x04,
-        FeaturedUser = 0x08
+        FeaturedUser = 0x08,
+        Whitelisted = 0x12
     }
 
     [DataContract]
@@ -43,12 +44,12 @@ namespace ShopSenseDemo
             LightUser user = new LightUser();
             user.userId = long.Parse(dr["Id"].ToString());
             user.pic = dr["pic"].ToString();
-            user.userName = dr["UserName"].ToString();
+            user.userName = dr["UserName"].ToString().Replace("''", "'");
             user.activityType = dr["type"].ToString();
             user.activityTime = dr["time"].ToString();
             if (!string.IsNullOrEmpty(dr["Name"].ToString()))
             {
-                user.name = dr["Name"].ToString();
+                user.name = dr["Name"].ToString().Replace("''", "'");
             }
 
             return user;
@@ -101,6 +102,8 @@ namespace ShopSenseDemo
 
         public string TumblrHandle { set; get; }
 
+        public string InstagramHandle { set; get; }
+
         public virtual bool IsPrivate
         {
             get
@@ -120,6 +123,8 @@ namespace ShopSenseDemo
         public bool IsNew { set; get; }
 
         public int IsFollowing { set; get; }
+
+        public string userAgent { set; get; }
 
         public string BigPic()
         {
@@ -170,10 +175,10 @@ namespace ShopSenseDemo
             UserProfile user = new UserProfile();
             user.userId = long.Parse(dr["Id"].ToString());
             user.pic = dr["Pic"].ToString();
-            user.userName = dr["UserName"].ToString();
+            user.userName = dr["UserName"].ToString().Replace("''", "'");
             if (!string.IsNullOrEmpty(dr["Name"].ToString()))
             {
-                user.name = dr["Name"].ToString();
+                user.name = dr["Name"].ToString().Replace("''", "'");
             }
 
             //if (!string.IsNullOrEmpty(dr["Points"].ToString()))
@@ -223,6 +228,10 @@ namespace ShopSenseDemo
             if (ColumnExists(dr, "TumName") && !string.IsNullOrEmpty(dr["TumName"].ToString()))
             {
                 user.TumblrHandle = dr["TumName"].ToString();
+            }
+            if (ColumnExists(dr, "InstaName") && !string.IsNullOrEmpty(dr["InstaName"].ToString()))
+            {
+                user.InstagramHandle = dr["InstaName"].ToString();
             }
             if (ColumnExists(dr, "Createtime") && !string.IsNullOrEmpty(dr["Createtime"].ToString()))
             {
@@ -296,6 +305,35 @@ namespace ShopSenseDemo
             return fbFriendIds;
         }
 
+        public static List<UserProfile> GetTopStylists(long userId, int noOfStylists, string db)
+        {
+            string query = "EXEC [stp_SS_GetPopularStylists] @userId=" + userId + ",@noOfStylist=" + noOfStylists;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            List<UserProfile> stylists = new List<UserProfile>();
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+                   
+                    while (dr.Read())
+                    {
+                        UserProfile user = UserProfile.GetUserFromSqlReader(dr);
+                        stylists.Add(user);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return stylists;
+        }
         public static UserProfile SaveOrUpdateUser(UserProfile user, string db)
         {
             UserProfile updatedUser = new UserProfile();
@@ -312,14 +350,14 @@ namespace ShopSenseDemo
             }
             fbFriends += "</Friends>";
 
-            string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender +
+            string query = "EXEC [stp_SS_SaveUser] @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "''") + "', @sex=" + gender +
                                                 ", @email=N'" + user.emailId + "', @location=N'" + user.location.Replace("'", "\"") +
                                   "', @facebookId=" + user.facebookId + ", @locale='" + user.locale + "', @fbFriends='" + fbFriends + "'" +
                                   ",@flags=" + (int)user.userFlags + ",@token='" + user.accessToken + "'" + ",@referral=N'" + user.Referral + "'" +
-                                  ", @password=N'" + user.password + "'";
+                                  ", @password=N'" + user.password + "', @userAgent=N'" + user.userAgent + "'";
             if (!string.IsNullOrEmpty(user.userName))
             {
-                query += ", @userName=N'" + user.userName + "'";
+                query += ", @userName=N'" + user.userName.Replace("'", "''") + "'";
             }
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -354,10 +392,10 @@ namespace ShopSenseDemo
             if (user.gender == Sex.Male)
                 gender = 1;
 
-            string query = "EXEC [stp_SS_UpdateUserInfo] @id=" + user.userId +  ", @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "\"") + "', @sex=" + gender +
+            string query = "EXEC [stp_SS_UpdateUserInfo] @id=" + user.userId +  ", @pic=N'" + user.pic + "', @name=N'" + user.name.Replace("'", "''") + "', @sex=" + gender +
                                                 ", @email=N'" + user.emailId + "', @location=N'" + user.location.Replace("'", "\"") +
                                                 "', @userName=N'" + user.userName + "', @bio=N'" + user.bio + "', @url=N'" + user.url + "', @fbPage='" + user.fbPage +
-                                                "', @TwName='" + user.twitterHandle + "', @PinName='" + user.PinterestHandle + "', @TumName='" + user.TumblrHandle + "'";
+                                                "', @TwName='" + user.twitterHandle + "', @PinName='" + user.PinterestHandle + "', @TumName='" + user.TumblrHandle + "', @InstaName='"+user.InstagramHandle +"'";
 
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -624,11 +662,11 @@ namespace ShopSenseDemo
         }
 
         //update cookie if this function is successful - so that users doesn't have to log in again for 15 days
-        public static UserProfile LogInUser(string email, string hash32Password, string db)
+        public static UserProfile LogInUser(string email, string hash32Password, string db, string userAgent="iPad")
         {
             UserProfile user = null;
             string query = "EXEC [stp_SS_Login] @email = N'" + email + "', "
-                                            + " @password = N'" + hash32Password + "'";
+                                            + " @password = N'" + hash32Password + "', @userAgent= N'" + userAgent + "'";
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -652,10 +690,10 @@ namespace ShopSenseDemo
             return user;
         }
 
-        public static UserProfile LogInViaFb(long facebookId, string db)
+        public static UserProfile LogInViaFb(long facebookId, string db,string userAgent = "iPad")
         {
             UserProfile user = null;
-            string query = "EXEC [stp_SS_LoginByFb] @facebookId =" + facebookId;
+            string query = "EXEC [stp_SS_LoginByFb] @facebookId =" + facebookId + ",@userAgent=N'" + userAgent + "'";
             SqlConnection myConnection = new SqlConnection(db);
             try
             {
@@ -681,11 +719,19 @@ namespace ShopSenseDemo
 
         public static Dictionary<string, List<Product>> GetClosetProducts(long userId,  string db, long viewerId= 0)
         {
+            return GetClosetProductsv2(userId, db, viewerId, 5);
+        }
+
+        public static Dictionary<string, List<Product>> GetClosetProductsv2(long userId, string db, long viewerId = 0, long items =5)
+        {
             Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
             string query = "EXEC [stp_SS_GetClosetProducts] @userId=" + userId;
 
             if (viewerId != 0)
                 query += ",@viewerId=" + viewerId;
+
+            if(items !=  0)
+                query += ",@noOfItems=" + items;
 
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -719,7 +765,7 @@ namespace ShopSenseDemo
                         }
 
                     } while (dr.NextResult());
-                   
+
                 }
             }
             finally
@@ -729,10 +775,15 @@ namespace ShopSenseDemo
             return closetByCategories;
         }
 
-        public static Dictionary<string, List<Product>> GetClosetProductsByMetaCat(long userId,string metaCat,  string db, int offset = 1, int limit = 20, long viewerId = 0)
+        public static Dictionary<string, List<Product>> GetClosetProductsByMetaCat(long userId,string metaCat,  string db, int offset = 1, int limit = 20, long viewerId = 0, bool isv2 = false)
         {
             Dictionary<string, List<Product>> closetByCategories = new Dictionary<string, List<Product>>();
-            string query = "EXEC [stp_SS_GetClosetProductsByMetaCat] @userId=" + userId + ",@metaCat='" + metaCat + "',@offset=" + offset + ",@limit=" + limit;
+            string query = "EXEC [stp_SS_GetClosetProductsByMetaCat]";
+            if(isv2)
+                query = "EXEC [stp_SS_GetClosetProductsByMetaCatv2]";
+            
+            
+            query += " @userId=" + userId + ",@metaCat='" + metaCat + "',@offset=" + offset + ",@limit=" + limit;
             if (viewerId != 0)
                 query += ",@viewerId=" + viewerId;
             SqlConnection myConnection = new SqlConnection(db);
@@ -912,7 +963,7 @@ namespace ShopSenseDemo
         }
 
         
-        public static Dictionary<string, List<object>> GetUserProfileInfo(long userId, string view, string db, int offset = 1, int limit = 20, long viewerId=0)
+        public static Dictionary<string, List<object>> GetUserProfileInfo(long userId, string view, string db, int offset = 1, int limit = 20, long viewerId=0, int sortType= 0)
         {
             Dictionary<string, List<object>> profileInfo = new Dictionary<string, List<object>>();
 
@@ -920,6 +971,9 @@ namespace ShopSenseDemo
 
             if (viewerId != 0)
                 query += ",@viewerId=" + viewerId;
+            if (sortType != 0)
+                query += ",@sortType=" + sortType;
+
 
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -931,10 +985,12 @@ namespace ShopSenseDemo
                     cmd.CommandTimeout = 300000;
                     System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
 
+                    int likeCount=0 , lookCount = 0;
+
                     List<object> count = new List<object>();
                     while (dr.Read())
                     {
-                        int lookCount = int.Parse(dr["LookCount"].ToString());
+                        lookCount = int.Parse(dr["LookCount"].ToString());
                         count.Add("looks," + lookCount);
                     }
                     dr.NextResult();
@@ -946,7 +1002,7 @@ namespace ShopSenseDemo
                     dr.NextResult();
                     while (dr.Read())
                     {
-                        int likeCount = int.Parse(dr["LikeCount"].ToString());
+                        likeCount = int.Parse(dr["LikeCount"].ToString());
                         count.Add("hearts," + likeCount);
                     }
                     dr.NextResult();
@@ -1013,6 +1069,20 @@ namespace ShopSenseDemo
                                 hearts.Add(lookId + "," +  isLoved);
                             }
                             break;
+                        case "lookbook":
+                            List<object> lookbooks = new List<object>();
+                            profileInfo.Add("lookbook", lookbooks);
+                            while (dr.Read())
+                            {
+                                string lookId = dr["Id"].ToString();
+                                //string isLoved = dr["love"].ToString();
+                                string isCreated = dr["created"].ToString();
+                                string rating = dr["OverallRating"].ToString();
+                                lookbooks.Add(lookId + "," + isCreated + "," + rating);
+                                
+                            }
+                            //count.Add("LookBookCount," + lookBookCount);
+                            break;
                         case "items":
                             do
                             {
@@ -1064,6 +1134,21 @@ namespace ShopSenseDemo
                                 Tag tag = Tag.GetTagFromSqlReader(dr);
                                 followingTags.Add(tag);
                             }
+
+                            //dr.NextResult();
+                            //List<object> followingBrands = new List<object>();
+                            //profileInfo.Add("followingBrands", followingBrands);
+                            //while (dr.Read())
+                            //{
+                            //    Brand brand = new Brand();
+                            //    brand.name = dr["name"].ToString().Replace("\"", "'");
+                            //    brand.id = long.Parse(dr["id"].ToString());
+                            //    if (ColumnExists(dr, "following") && !string.IsNullOrEmpty(dr["following"].ToString()))
+                            //    {
+                            //        brand.IsFollowing = int.Parse(dr["following"].ToString());
+                            //    }
+                            //    followingBrands.Add(brand);
+                            //}
                             break;
                     }
                 }
@@ -1074,6 +1159,127 @@ namespace ShopSenseDemo
             }
 
             return profileInfo;
+        }
+
+        public static Dictionary<string, List<object>> GetUserFollowedBrands(long userId, string db)
+        {
+            Dictionary<string, List<object>> profileInfo = new Dictionary<string, List<object>>();
+
+            string query = "EXEC [stp_SS_GetFollowedBrands] @id=" + userId ;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    int brandCount = 0;
+
+                    List<object> count = new List<object>();
+                    while (dr.Read())
+                    {
+                        brandCount = int.Parse(dr["BrandCount"].ToString());
+                        count.Add("looks," + brandCount);
+                    }
+                    
+
+                    dr.NextResult();
+                    profileInfo.Add("Counts", count);
+                   
+                            
+                    List<object> followingBrands = new List<object>();
+                    profileInfo.Add("followingBrands", followingBrands);
+                    while (dr.Read())
+                    {
+                        Brand brand = new Brand();
+                        brand.name = dr["name"].ToString().Replace("\"", "'");
+                        brand.id = long.Parse(dr["id"].ToString());
+                        
+                        followingBrands.Add(brand);
+                    }
+                            
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return profileInfo;
+        }
+
+        public static List<Tag> GetUserFollowedTags(long userId, string db, int offset = 1, int limit = 20, long viewerId = 0)
+        {
+            List<Tag> tags = new List<Tag>();
+
+            string query = "EXEC [stp_SS_GetUserFollowingTags] @id=" + userId + ", @offset=" + offset + ",@limit=" + limit;
+
+            if (viewerId != 0)
+                query += ",@viewerId=" + viewerId;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        Tag tag = Tag.GetTagFromSqlReader(dr);
+                        tags.Add(tag);
+                    }
+
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return tags;
+        }
+
+        public static List<UserProfile> GetUserFollowedUsers(long userId, string db, int offset = 1, int limit = 20, long viewerId = 0)
+        {
+            List<UserProfile> users = new List<UserProfile>();
+
+            string query = "EXEC [stp_SS_GetUserFollowingUsers] @id=" + userId + ", @offset=" + offset + ",@limit=" + limit;
+
+            if (viewerId != 0)
+                query += ",@viewerId=" + viewerId;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        UserProfile user = UserProfile.GetUserFromSqlReader(dr);
+                        users.Add(user);
+                    }
+
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return users;
         }
 
         public static bool IsEmailUnique(string emailId, string db)
@@ -1256,7 +1462,90 @@ namespace ShopSenseDemo
             return isSuccess;
         }
 
+        public static bool SaveNotificationSeenTime(long userId, string db)
+        {
+            bool isSuccess = false;
 
+            string query = "EXEC [stp_SS_SaveNotificationSeenTime] @userid=" + userId ;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
+
+
+
+        public static bool SubscribeBrands(long userId, string brands, bool isFollow, string db)
+        {
+            bool isSuccess = false;
+
+            int subscribe = isFollow == true ? 1 : 0;
+
+            string query = "EXEC [stp_SS_SubscribeBrands] @uid=" + userId + ", @brands=N'" + brands.Replace("'", "''") + "',@subscribe=" + subscribe;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    cmd.ExecuteNonQuery();
+                }
+                isSuccess = true;
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
+
+        public static bool IsSubscribeBrand(long userId, long brandId,  string db)
+        {
+            bool isSuccess = false;
+
+            string query = "EXEC [stp_SS_IsFollowedBrand] @userId=" + userId + ", @brandId=" + brandId;
+            SqlConnection myConnection = new SqlConnection(db);
+
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        string count = dr["BrandCount"].ToString();
+                        if (count != "0")
+                            isSuccess = true;
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return isSuccess;
+        }
     }
 }
     

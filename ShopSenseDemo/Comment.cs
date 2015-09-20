@@ -45,7 +45,7 @@ namespace ShopSenseDemo
                         comment.commenter = UserProfile.GetUserFromSqlReader(dr);
                         comment.commentText = dr["CommentText"].ToString().Replace("''", "'");
                         DateTime commentTime = DateTime.Parse(dr["CommentCreateTime"].ToString());
-                        comment.commentTime =  (commentTime - new DateTime(1970, 1, 1).ToLocalTime()).TotalSeconds;
+                        comment.commentTime =  (commentTime - new DateTime(1970, 1, 1)).TotalSeconds;
                         comments.Add(comment);
                     }
                 }

@@ -245,7 +245,7 @@ namespace ShopSenseDemo
             p.categoryNames = new List<string>();
             p.colors = new List<Color>();
             Image img = new Image();
-            img.url = p.GetBestImageUrl(dr["ImageUrl"].ToString());
+            img.url = (dr["ImageUrl"].ToString());
             p.images.Add(img);
             p.url = dr["Url"].ToString();
             p.price = (Decimal)dr["Price"];
@@ -471,6 +471,35 @@ namespace ShopSenseDemo
 
         }
 
+        public static Product GetProductById(long userId, long productId, string colorId, string categoryId, string db)
+        {
+            Product p = null;
+
+            string query = "EXEC [stp_SS_GetProductv2] @id=" + productId + ", @categoryId=N'" + categoryId + "', @colorId=N'" + colorId + "',@userId=" + userId;
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        p = GetProductFromSqlDataReader(dr);
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+            return p;
+
+        }
+
         public static Dictionary<string, List<Product>> GetSimilarProducts(string categoryId,string colorId,long productId, long userId, string db)
         {
             Dictionary<string, List<Product>> similarProducts = new Dictionary<string, List<Product>>();
@@ -492,16 +521,6 @@ namespace ShopSenseDemo
                         exactSimilarproducts.Add(GetProductFromSqlDataReader(dr));
                     }
                     similarProducts.Add("exact", exactSimilarproducts);
- 
-                    //Same Color
-                    dr.NextResult();
-                    List<Product> sameColorProducts = new List<Product>();
-
-                    while (dr.Read())
-                    {
-                        sameColorProducts.Add(GetProductFromSqlDataReader(dr));
-                    }
-                    similarProducts.Add("color", sameColorProducts);
 
                     //Same Brand
                     dr.NextResult();
@@ -512,6 +531,17 @@ namespace ShopSenseDemo
                         sameBrandProducts.Add(GetProductFromSqlDataReader(dr));
                     }
                     similarProducts.Add("brand", sameBrandProducts);
+
+                    //Same Color
+                    dr.NextResult();
+                    List<Product> sameColorProducts = new List<Product>();
+
+                    while (dr.Read())
+                    {
+                        sameColorProducts.Add(GetProductFromSqlDataReader(dr));
+                    }
+                    similarProducts.Add("color", sameColorProducts);
+
                 }
             }
             finally
@@ -587,6 +617,12 @@ namespace ShopSenseDemo
         public static Dictionary<string, List<Product>> GetPopularProductsByFiltersv2(long userId, string db, int brandId = 0, string tags = null, string categoryId = null, string colorId = null,
                                                                                       int offset = 1, int limit = 20)
         {
+            return GetPopularProductsByFiltersv3(userId, db, brandId, tags, categoryId, colorId, offset, limit, 5, null);
+        }
+
+        public static Dictionary<string, List<Product>> GetPopularProductsByFiltersv3(long userId, string db, int brandId = 0, string tags = null, string categoryId = null, string colorId = null,
+                                                                                      int offset = 1, int limit = 20, int items = 5, string filter = null)
+        {
             Dictionary<string, List<Product>> popularProducts = new Dictionary<string, List<Product>>();
             string query = "EXEC [stp_SS_GetPopularProductsByFilters] @uId =" + userId + ",@offset=" + offset + ",@limit=" + limit;
             if (categoryId != null)
@@ -597,6 +633,10 @@ namespace ShopSenseDemo
                 query += ",@tags=N'" + tags + "'";
             if (brandId != 0)
                 query += ",@brandId=" + brandId;
+            if (items != 0)
+                query += ",@items=" + items;
+            if (filter != null)
+                query += ",@filter=" + filter;
 
             SqlConnection myConnection = new SqlConnection(db);
             try
@@ -734,6 +774,68 @@ namespace ShopSenseDemo
             return products;
         }
 
+        public static List<Product> GetPopularProductsByUserv2(long uId, string db, int offset = 1, int limit = 20)
+        {
+            List<Product> products = new List<Product>();
+
+            string query = "EXEC [stp_SS_GetHotItemsv2] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+
+                    while (dr.Read())
+                    {
+                        products.Add(GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return products;
+        }
+
+        public static List<Product> GetNewProductsByUser(long uId, string db, int offset = 1, int limit = 20)
+        {
+            List<Product> products = new List<Product>();
+
+            string query = "EXEC [stp_SS_GetNewItemsForBrands] @userId=" + uId + ",@offset=" + offset + ",@limit=" + limit;
+
+            SqlConnection myConnection = new SqlConnection(db);
+            try
+            {
+                myConnection.Open();
+                using (SqlDataAdapter adp = new SqlDataAdapter(query, myConnection))
+                {
+                    SqlCommand cmd = adp.SelectCommand;
+                    cmd.CommandTimeout = 300000;
+                    System.Data.SqlClient.SqlDataReader dr = cmd.ExecuteReader();
+
+
+                    while (dr.Read())
+                    {
+                        products.Add(GetProductFromSqlDataReader(dr));
+                    }
+                }
+            }
+            finally
+            {
+                myConnection.Close();
+            }
+
+            return products;
+        }
+
         public static bool HeartItem(long userId, long productId,bool isHeart,string colorId, string catId, string db)
         {
             int heart = isHeart == true ? 1 : 0;
@@ -825,6 +927,7 @@ namespace ShopSenseDemo
 
                     string colorList = "<ColorList>";
                     string defaultColorId = null;
+                    int colorCount = 0;
                     foreach (Color color in p.colors)
                     {
                         //store the image url for hte right color
@@ -842,11 +945,12 @@ namespace ShopSenseDemo
 
                             colorList += "<Color pId=\"" + p.id + "\" cId=\"" + color.canonical[0] + "\" image=\"" + imageUrl + "\" cname=\"" + color.name.Replace("'", "''") +
                                "\" surl=\"" + color.swatchUrl + "\" />";
+                            colorCount++;
                         }
                     }
                     
                     //update the ismultiplecolor fiels
-                    if (p.colors.Count > 1)
+                    if (colorCount > 1)
                         p.inMultipleColors = true;
                     
                     //force a default image url

@@ -2,9 +2,15 @@ C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsL
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.exe
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\WeeklyNewsLetter.pdb
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Mandrill.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Newtonsoft.Json.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\RestSharp.dll
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.dll
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.pdb
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Facebook.xml
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Mandrill.xml
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\Newtonsoft.Json.xml
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\RestSharp.xml
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.csprojResolveAssemblyReference.cache
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.exe
 C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\obj\x86\Debug\WeeklyNewsLetter.pdb
-C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\WeeklyNewsLetter\bin\Debug\ShopSenseDemo.dll

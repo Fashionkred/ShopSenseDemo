@@ -232,8 +232,10 @@ namespace ShopSenseDemo
             };
 
             //List<string> Retailers = new List<string> { "r1", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10" };
-            List<string> Retailers = new List<string> { "r21", "r27", "r105", "r1426", "r483", "r760", "r36" , "r29", "r54", "r76", "r1060", "r717"};
+            //List<string> Retailers = new List<string> { "r21", "r27", "r105", "r1426", "r483", "r760", "r36" , "r29", "r54", "r76", "r1060", "r717"};
             //List<string> Retailers = new List<string> { "r1426", "r483", "r1674" };
+            List<string> Brands = new List<string> {"b172","b309","b345","b398","b421","b582","b613","b890","b957","b981","b728","b1605","b1803","b2160", "b2115","b2331","b2332","b2335","b2339",
+               "b2342","b2348","b2723","b2446","b2685","b3395","b3397","b3542","b4409","b5846","b8002","b8004","b12778","b13342","b18501","b18563","b18577","b18520","b29353","b29489", "b30363","b31089","b30810" };
 
             Dictionary<Category, List<Category>> catTree = Category.GetMetaCategories(connectionString);
             foreach(KeyValuePair<Category, List<Category>> metaCat in catTree)
@@ -245,12 +247,12 @@ namespace ShopSenseDemo
 
                     foreach (CanonicalColors c in colors)
                     {
-                        foreach (string retailer in Retailers)
+                        foreach (string brand in Brands)
                         {
-                            Console.WriteLine("Cat:" + cat.name+ "Color: " + c + "Retailer: "+ retailer );
+                            Console.WriteLine("Cat:" + cat.name+ "Color: " + c + "Brand: "+ brand );
 
                             string colorfilter = "c" + c.GetHashCode();
-                            GetProducts(cat.id, retailer, colorfilter);
+                            GetProducts(cat.id, brand, colorfilter);
                         }
                     }
                 }

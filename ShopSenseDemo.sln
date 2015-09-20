@@ -5,26 +5,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopSenseDemo", "ShopSenseD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeeklyNewsLetter", "WeeklyNewsLetter\WeeklyNewsLetter.csproj", "{0D3FCB46-8BB3-4A6B-A843-086C03000217}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "main", "..\main\", "{46585171-3A6C-4A9F-B325-A300DB8FD9B7}"
-	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
-		Debug.AspNetCompiler.VirtualPath = "/main"
-		Debug.AspNetCompiler.PhysicalPath = "..\main\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\main\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/main"
-		Release.AspNetCompiler.PhysicalPath = "..\main\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\main\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "43865"
-	EndProjectSection
-EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "FashionKred", "..\..\WebSites\FashionKred\", "{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
@@ -46,6 +26,17 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "FashionKred", "..\..\WebSit
 		VWDPort = "17544"
 		VWDDynamicPort = "false"
 	EndProjectSection
+	ProjectSection(ProjectDependencies) = postProject
+		{0D3FCB46-8BB3-4A6B-A843-086C03000217} = {0D3FCB46-8BB3-4A6B-A843-086C03000217}
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48} = {296A45FD-7CC6-4CBD-96F5-A9689B12EF48}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DailyNotification", "DailyNotification\DailyNotification.csproj", "{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F1FE22D2-F352-44D1-A51D-B7B5A445AA9E} = {F1FE22D2-F352-44D1-A51D-B7B5A445AA9E}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Housekeeping", "Housekeeping\Housekeeping.csproj", "{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,16 +68,6 @@ Global
 		{0D3FCB46-8BB3-4A6B-A843-086C03000217}.Release|Mixed Platforms.Build.0 = Release|x86
 		{0D3FCB46-8BB3-4A6B-A843-086C03000217}.Release|x86.ActiveCfg = Release|x86
 		{0D3FCB46-8BB3-4A6B-A843-086C03000217}.Release|x86.Build.0 = Release|x86
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
-		{46585171-3A6C-4A9F-B325-A300DB8FD9B7}.Release|x86.ActiveCfg = Debug|Any CPU
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -97,6 +78,26 @@ Global
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{FFF2A0EC-0E3E-45BE-AB10-A9DB70521EF3}.Release|x86.ActiveCfg = Debug|Any CPU
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Debug|x86.ActiveCfg = Debug|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Debug|x86.Build.0 = Debug|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Release|Any CPU.ActiveCfg = Release|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Release|Mixed Platforms.Build.0 = Release|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Release|x86.ActiveCfg = Release|x86
+		{296A45FD-7CC6-4CBD-96F5-A9689B12EF48}.Release|x86.Build.0 = Release|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Debug|x86.ActiveCfg = Debug|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Debug|x86.Build.0 = Debug|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Release|Any CPU.ActiveCfg = Release|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Release|Mixed Platforms.Build.0 = Release|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Release|x86.ActiveCfg = Release|x86
+		{E722DF2F-4B8D-43B1-8362-3EBF3FDC869B}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
