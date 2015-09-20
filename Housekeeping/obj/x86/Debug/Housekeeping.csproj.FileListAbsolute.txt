@@ -1,0 +1,5 @@
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\Housekeeping\bin\Debug\Housekeeping.exe
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\Housekeeping\bin\Debug\Housekeeping.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\Housekeeping\obj\x86\Debug\Housekeeping.exe
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\Housekeeping\obj\x86\Debug\Housekeeping.pdb
+C:\Users\nirveek\documents\visual studio 2010\Projects\ShopSenseDemo\Housekeeping\obj\x86\Debug\Housekeeping.csprojResolveAssemblyReference.cache
